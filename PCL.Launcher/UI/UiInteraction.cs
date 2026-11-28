@@ -7,8 +7,8 @@ using PCL.Core.App;
 using PCL.Core.App.IoC;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Minecraft.Watcher;
 using PCL.Core.Platform;
-using PCL.Core.UI.Background;
 using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Hints;
 using PCL.Navigation;
@@ -600,7 +600,7 @@ public sealed class LaunchUiBridge : ILaunchUi
         UiInteraction.WarnMissing(nameof(RefreshLaunching), "LAUNCH");
     }
 
-    public void AttachLogPage(GameWatcher.Watcher watcher)
+    public void AttachLogPage(GameSession session)
     {
         // 导航与页面创建必须同处 UI 线程；PageLogLeft.Current 在宿主创建左页时同步赋值。
         UiInteraction.RunOnUi(() =>
@@ -608,7 +608,7 @@ public sealed class LaunchUiBridge : ILaunchUi
             PageRouter.Navigate(PageIds.GameLog);
             if (PageLogLeft.Current is { } sink)
             {
-                sink.AttachWatcher(watcher);
+                sink.AttachSession(session);
                 return;
             }
 
@@ -723,42 +723,5 @@ public sealed class CompUiBridge : ICompUi
         bool isWarn = false)
     {
         return UiInteraction.MessageAsync(caption, title, button1, button2, button3, isWarn);
-    }
-}
-
-/// <summary>游戏监视器与关闭按钮的通知桥接。</summary>
-public sealed class WatcherUiBridge : IWatcherUi
-{
-    public void RefreshShutdownButton()
-    {
-        BackgroundHost.Current?.SetGaming(GameWatcher.hasRunningMinecraft);
-        UiInteraction.TryShellAction(
-            nameof(RefreshShutdownButton),
-            "SHELL",
-            shell => shell.RefreshShutdownButton());
-    }
-
-    public void ExitApplication()
-    {
-        UiInteraction.Shutdown();
-    }
-
-    public void ShowApplication()
-    {
-        var window = UiInteraction.MainWindow;
-        if (window is null) return;
-        window.Show();
-        window.WindowState = WindowState.Normal;
-        window.Activate();
-    }
-
-    public void ShowFeedback()
-    {
-        PageRouter.Navigate(PageIds.Setup, SubPageIds.SetupFeedback);
-    }
-
-    public void ShowHint(string text, NotificationType type = NotificationType.Info)
-    {
-        UiInteraction.Hint(text, type);
     }
 }

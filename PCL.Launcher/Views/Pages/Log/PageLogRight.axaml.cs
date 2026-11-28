@@ -5,6 +5,8 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Core.App.Localization;
 using PCL.Core.Logging;
+using PCL.Core.Minecraft.Watcher;
+using PCL.Core.UI.Game.Log;
 using PCL.Core.UI.Theme;
 using PCL.Navigation;
 using PCL.UI.Controls;
@@ -16,7 +18,7 @@ public partial class PageLogRight : MyPageRight, IRefreshable
 {
     private bool _refreshed;
 
-    private GameWatcher.Watcher? _subscribedLog;
+    private GameSession? _subscribedSession;
 
     public PageLogRight()
     {
@@ -25,18 +27,18 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         Current = this;
         DataContext = ViewModel;
         PanLog.ItemTemplate =
-            new FuncDataTemplate<PageLogLeft.LogLine>((line, _) => CreateLogLine(line));
+            new FuncDataTemplate<GameLogEntry>((line, _) => CreateLogLine(line));
 
         BtnOperationExport.Click += (_, _) => _ = ViewModel.ExportLogAsync();
         BtnOperationClear.Click += (_, _) =>
         {
-            if (ViewModel.ClearLog())
+            if (ViewModel.ClearCurrentBuffer())
                 Dispatcher.UIThread.Post(() => PanBack.ScrollToHome());
         };
-        BtnOperationKill.Click += (_, _) => ViewModel.KillProcess();
+        BtnOperationKill.Click += (_, _) => ViewModel.TerminateCurrentSession();
         BtnOperationExportStackDump.Click += (_, _) => _ = ViewModel.ExportStackDumpAsync();
         SliderMaxLog.Change += (_, _) => ViewModel.MaxLogLines = SliderMaxLog.Value;
-        SliderMaxLog.getHintText = PageLogRightViewModel.GetMaxLogHintText;
+        SliderMaxLog.getHintText = GameLogContentViewModel.FormatMaxLogHint;
         ViewModel.PropertyChanged += (_, args) =>
         {
             if (string.IsNullOrEmpty(args.PropertyName))
@@ -45,13 +47,13 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         DetachedFromVisualTree += (_, _) =>
         {
             _refreshed = false;
-            UnsubscribeCurrentLog();
+            UnsubscribeCurrentSession();
         };
     }
 
     public static PageLogRight? Current { get; private set; }
 
-    public PageLogRightViewModel ViewModel { get; } = new();
+    public GameLogContentViewModel ViewModel { get; } = new();
 
     private static PageLogLeft? Left => PageLogLeft.Current;
 
@@ -74,10 +76,8 @@ public partial class PageLogRight : MyPageRight, IRefreshable
 
     public override void OnNavigatedFrom()
     {
-        UnsubscribeCurrentLog();
+        UnsubscribeCurrentSession();
     }
-
-    #region 渲染
 
     public void ReloadContent()
     {
@@ -87,12 +87,12 @@ public partial class PageLogRight : MyPageRight, IRefreshable
             return;
         }
 
-        ViewModel.Load(Left);
+        ViewModel.Bind(Left?.ViewModel);
         RefreshCounters();
-        if (ViewModel.HasLog)
-            SubscribeCurrentLog(Left!.CurrentLog!);
+        if (ViewModel.HasLog && Left?.CurrentSession is { } session)
+            SubscribeCurrentSession(session);
         else
-            UnsubscribeCurrentLog();
+            UnsubscribeCurrentSession();
         ScrollToEndIfNeeded();
         LogVirtualizationState();
     }
@@ -110,7 +110,7 @@ public partial class PageLogRight : MyPageRight, IRefreshable
             DispatcherPriority.Loaded);
     }
 
-    public void OnLogAppended(PageLogLeft.LogBuffer buffer)
+    public void OnLogAppended(GameLogBuffer buffer)
     {
         if (!Dispatcher.UIThread.CheckAccess())
         {
@@ -118,7 +118,7 @@ public partial class PageLogRight : MyPageRight, IRefreshable
             return;
         }
 
-        if (!ViewModel.OnLogAppended(buffer))
+        if (!ViewModel.RefreshFromBuffer(buffer))
             return;
 
         RefreshCounters();
@@ -136,7 +136,7 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         });
     }
 
-    private SelectableTextBlock CreateLogLine(PageLogLeft.LogLine? line)
+    private SelectableTextBlock CreateLogLine(GameLogEntry? line)
     {
         return line switch
         {
@@ -197,27 +197,32 @@ public partial class PageLogRight : MyPageRight, IRefreshable
         }
     }
 
-    private void SubscribeCurrentLog(GameWatcher.Watcher log)
+    private void SubscribeCurrentSession(GameSession session)
     {
-        if (ReferenceEquals(_subscribedLog, log))
+        if (ReferenceEquals(_subscribedSession, session))
             return;
-        UnsubscribeCurrentLog();
-        _subscribedLog = log;
-        log.GameExit += OnGameExit;
+        UnsubscribeCurrentSession();
+        _subscribedSession = session;
+        session.Exited += OnGameExit;
+        session.StateChanged += OnSessionStateChanged;
     }
 
-    private void UnsubscribeCurrentLog()
+    private void UnsubscribeCurrentSession()
     {
-        if (_subscribedLog is null)
+        if (_subscribedSession is null)
             return;
-        _subscribedLog.GameExit -= OnGameExit;
-        _subscribedLog = null;
+        _subscribedSession.Exited -= OnGameExit;
+        _subscribedSession.StateChanged -= OnSessionStateChanged;
+        _subscribedSession = null;
     }
 
-    private void OnGameExit()
+    private void OnSessionStateChanged(object? sender, GameSessionStateChangedEventArgs e)
     {
-        Dispatcher.UIThread.Post(() => ViewModel.OnGameExit());
+        Dispatcher.UIThread.Post(() => ViewModel.RefreshActionAvailability());
     }
 
-    #endregion
+    private void OnGameExit(object? sender, GameSessionExitedEventArgs e)
+    {
+        Dispatcher.UIThread.Post(() => ViewModel.OnGameExit(e));
+    }
 }

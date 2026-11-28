@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using PCL.Core.App.Media;
 using PCL.Core.Platform;
 using PCL.UI;
 using PCL.UI.Bridges;
@@ -23,7 +24,6 @@ public static class UiServiceRegistration
         typeof(IDownloadUserInteraction),
         typeof(IUpdateUi),
         typeof(IAnnouncementActionHandler),
-        typeof(IWatcherUi),
         typeof(IMediaService),
         typeof(ICrashAnalysisService),
         typeof(ICompNavigationService),
@@ -55,7 +55,6 @@ public static class UiServiceRegistration
         services.AddSingleton<IDownloadUserInteraction, DownloadInteractionBridge>();
         services.AddSingleton<IUpdateUi, UpdateUiBridge>();
         services.AddSingleton<IAnnouncementActionHandler, AnnouncementActionsBridge>();
-        services.AddSingleton<IWatcherUi, WatcherUiBridge>();
         services.AddSingleton<MediaServiceBridge>();
         services.AddSingleton<IMediaService>(provider =>
             provider.GetRequiredService<MediaServiceBridge>());

@@ -387,8 +387,8 @@ public partial class PageLaunchLeftViewModel : ViewModelBase
         GameLaunch.McLaunchLog("已取消启动");
         try
         {
-            var process = GameLaunch.mcLaunchProcess ?? GameLaunch.mcLaunchWatcher?.gameProcess;
-            if (process is { HasExited: false })
+            GameLaunch.mcLaunchWatcher?.Kill();
+            if (GameLaunch.mcLaunchProcess is { HasExited: false } process)
                 process.Kill();
         }
         catch (Exception ex)

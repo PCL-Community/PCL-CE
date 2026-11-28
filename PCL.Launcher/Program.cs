@@ -4,6 +4,7 @@ using PCL.Core.App.Essentials;
 using PCL.Core.App.IoC;
 using PCL.Core.Platform;
 using PCL.Core.UI;
+using PCL.Core.UI.Game;
 using PCL.Navigation;
 using PCL.UI;
 using PCL.Views;
@@ -30,6 +31,7 @@ internal static class Program
         PageRegistry.Initialize(serviceProvider.GetRequiredService<PageHostFactory>());
 
         AnimationRegistration.Register();
+        GameWatcherUiRegistration.Register();
 
         ApplicationService.Loading = () =>
             new ApplicationHost(() => builder.StartWithClassicDesktopLifetime(args));

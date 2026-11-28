@@ -4,7 +4,9 @@ using Avalonia.Layout;
 using Avalonia.Threading;
 using PCL.Core.App;
 using PCL.Core.App.Localization;
+using PCL.Core.App.Media;
 using PCL.Core.Logging;
+using PCL.Core.Minecraft.Watcher;
 using PCL.Navigation;
 using PCL.Network;
 using PCL.UI;
@@ -72,7 +74,7 @@ public sealed class ExtraButtonsPanel : StackPanel
         _april.showCheck = () => Basics.IsAprilFool
             && !IsAprilGiveup
             && PageRouter.Current.Page == PageIds.Launch;
-        _shutdown.showCheck = () => GameWatcher.hasRunningMinecraft;
+        _shutdown.showCheck = () => GameWatcherService.HasLiveSessions;
         _log.showCheck = ShowLogButton;
         _music.showCheck = () => MusicStateProvider?.Invoke() is { Visible: true }
             && MediaService.Current?.IsAvailable == true;
@@ -271,7 +273,7 @@ public sealed class ExtraButtonsPanel : StackPanel
     {
         if (GameLogProvider is null) return false;
         if (PageRouter.Current.Page == PageIds.GameLog) return false;
-        return GameLogProvider?.Invoke() ?? GameWatcher.mcWatcherList.Count > 0;
+        return GameLogProvider?.Invoke() ?? GameWatcherService.Sessions.Count > 0;
     }
 
     private static bool CanScrollToTop()
@@ -330,8 +332,8 @@ public sealed class ExtraButtonsPanel : StackPanel
     {
         try
         {
+            GameWatcherService.KillAll();
             GameLaunch.mcLaunchLoaderReal?.Abort();
-            foreach (var watcher in GameWatcher.mcWatcherList.ToList()) watcher.Kill();
             UiInteraction.Hint(
                 Lang.Text("Main.ShutdownMinecraft.Success"),
                 NotificationType.Success);
