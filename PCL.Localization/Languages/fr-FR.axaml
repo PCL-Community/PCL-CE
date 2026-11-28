@@ -25,7 +25,8 @@
     <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- Votre système est en 32 bits, ce qui n'est pas pris en charge par PCL CE ni par les versions récentes de Minecraft. Il est fortement recommandé de réinstaller un système 64 bits avant de jouer</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.TempFolder">- PCL CE est en cours d'exécution dans le dossier temporaire, veuillez extraire PCL CE de l'archive avant de l'utiliser, sinon cela pourrait entraîner la perte des sauvegardes de jeu ou des paramètres</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.Title">Avertissement d'environnement</sys:String>
-    <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- La version de Windows ne répond pas aux exigences recommandées, Windows 10 1809 ou version ultérieure est recommandé, il est conseillé d'envisager une mise à niveau de Windows</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- La version de Windows ne répond pas aux exigences recommandées, Windows 10 21H2 ou version ultérieure est recommandé, il est conseillé d'envisager une mise à niveau de Windows</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.MacOsVersion">- La version de macOS ne répond pas aux exigences recommandées, macOS 15 Sequoia ou version ultérieure est recommandée, il est conseillé d'envisager une mise à niveau de macOS</sys:String>
     <sys:String x:Key="Application.InitializationError.Path">Chemin d'accès de PCL CE : {0}</sys:String>
     <sys:String x:Key="Application.InitializationError.PathUnavailable">Échec de la récupération</sys:String>
     <sys:String x:Key="Application.InitializationError.Title">Erreur d'initialisation de PCL CE</sys:String>

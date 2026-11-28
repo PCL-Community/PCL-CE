@@ -233,8 +233,10 @@ public sealed class StartupEffects(
             var problems = issues.Select(issue => Lang.Text(
                 issue switch
                 {
-                    RuntimeEnvironmentIssue.OutdatedSystem =>
+                    RuntimeEnvironmentIssue.OutdatedSystem when OperatingSystem.IsWindows() =>
                         "Application.EnvironmentWarning.WindowsVersion",
+                    RuntimeEnvironmentIssue.OutdatedSystem when OperatingSystem.IsMacOS() =>
+                        "Application.EnvironmentWarning.MacOsVersion",
                     RuntimeEnvironmentIssue.System32Bit =>
                         "Application.EnvironmentWarning.System32Bit",
                     RuntimeEnvironmentIssue.TempFolder =>
