@@ -27,6 +27,7 @@ public partial class PageInstanceCompResource
     private readonly Comp.CompType _compType;
     private readonly DispatcherTimer _searchTimer;
     private readonly ResourceSwipeSelector _swipeSelector;
+    private readonly RadioButtonSelectionIndicator _filterSelectionIndicator;
 
     private string _currentFolderPath = string.Empty;
     private bool _isBuilding;
@@ -41,6 +42,10 @@ public partial class PageInstanceCompResource
     {
         _compType = compType;
         InitializeComponent();
+        _filterSelectionIndicator = new RadioButtonSelectionIndicator(
+            PanFilter,
+            FilterSelectionIndicator,
+            PanFilterSelect);
         DataContext = ViewModel;
         PanScroll = PanBack;
         SearchBox.SetLocalizedValue(MySearchBox.HintTextProperty, "Instance.Resource.Search.Hint");
@@ -164,6 +169,7 @@ public partial class PageInstanceCompResource
                 if (sender.Tag is string tag && int.TryParse(tag, out var index))
                     ViewModel.ApplyFilter(index);
                 BuildList();
+                Dispatcher.UIThread.Post(_filterSelectionIndicator.Update, DispatcherPriority.Loaded);
             };
         BtnSort.Click += (_, _) => ShowSortMenu();
 

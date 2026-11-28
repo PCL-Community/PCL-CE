@@ -28,6 +28,7 @@ public partial class TitleBar : UserControl
     private readonly double _defaultHeight;
 
     private readonly Dictionary<MainTab, MyRadioButton> _tabButtons = [];
+    private readonly RadioButtonSelectionIndicator _tabSelectionIndicator;
 
     private bool _isExtended;
 
@@ -41,10 +42,11 @@ public partial class TitleBar : UserControl
     {
         InitializeComponent();
         _defaultHeight = PanTitle.Height;
+        _tabSelectionIndicator = new RadioButtonSelectionIndicator(
+            PanTitleTabs,
+            TabSelectionIndicator,
+            PanTitleSelect);
         BuildMainTabs();
-        PanTitleTabs.SizeChanged += (_, _) => UpdateTabSelectionIndicator(false);
-        Loaded += (_, _) => Dispatcher.UIThread.Post(() =>
-            UpdateTabSelectionIndicator(false));
         AddHandler(
             PointerPressedEvent,
             Root_OnPointerPressed,
@@ -341,50 +343,7 @@ public partial class TitleBar : UserControl
         var target = MainTabDescriptor.Normalize(tab);
         foreach (var (id, button) in _tabButtons)
             button.Checked = id == target;
-        Dispatcher.UIThread.Post(() => UpdateTabSelectionIndicator(true));
-    }
-
-    private void UpdateTabSelectionIndicator(bool animate)
-    {
-        var target = _tabButtons.FirstOrDefault(pair => pair.Value.Checked).Value;
-        if (target is null || target.Bounds.Width <= 0d)
-            return;
-
-        var point = target.TranslatePoint(default, PanTitleSelect);
-        if (point is null)
-            return;
-
-        TabSelectionIndicator.Width = target.Bounds.Width;
-        if (TabSelectionIndicator.RenderTransform is not TranslateTransform transform)
-        {
-            transform = new TranslateTransform();
-            TabSelectionIndicator.RenderTransform = transform;
-        }
-
-        var destination = point.Value.X;
-        var delta = destination - transform.X;
-        if (Math.Abs(delta) < 0.1d)
-        {
-            AnimationService.CancelAnimationByName("TitleBar Tab Indicator");
-            transform.X = destination;
-            return;
-        }
-
-        if (!animate || !CanAnimateShell || AnimationService.IsSuspended)
-        {
-            AnimationService.CancelAnimationByName("TitleBar Tab Indicator");
-            transform.X = destination;
-            return;
-        }
-
-        AnimationService.CancelAnimationByName("TitleBar Tab Indicator");
-        AnimationService.Run(
-            new TranslateXAnimation(
-                TabSelectionIndicator,
-                delta,
-                240,
-                ease: new FluentEaseOut(EasePower.Weak)),
-            "TitleBar Tab Indicator");
+        Dispatcher.UIThread.Post(_tabSelectionIndicator.Update);
     }
 
     private void Tab_OnCheck(MyRadioButton sender, bool raiseByMouse)

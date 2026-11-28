@@ -611,6 +611,12 @@ public partial class MyRadioButton : UserControl
                 }
             }
 
+            if (UseExternalSelectionIndicator)
+            {
+                var alpha = Checked ? 0 : _isMouseDown ? 0x78 : IsPointerOver ? 0x32 : 0;
+                background = WithAlpha(ColorType == ColorState.White ? Colors.White : accent, (byte)alpha);
+            }
+
             var effective = animate && InputAnimation.CanAnimate(this);
 
             InputAnimation.ColorLiteral(
