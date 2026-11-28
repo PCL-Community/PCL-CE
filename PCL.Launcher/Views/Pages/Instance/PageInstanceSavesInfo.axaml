@@ -57,10 +57,6 @@
                        IsVisible="{Binding ShowContent}">
                 <StackPanel Margin="15,35,15,15"
                             Spacing="4">
-                    <TextBlock x:Name="TitleText"
-                               FontSize="18"
-                               FontWeight="SemiBold"
-                               TextWrapping="Wrap" />
                     <StackPanel x:Name="PanInfo"
                                 Margin="0,4,0,0" />
                 </StackPanel>
