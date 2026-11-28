@@ -55,7 +55,7 @@ public class FfmpegCommandBuilderTest
         var hardwareIndex = Array.IndexOf([.. arguments], "-hwaccel");
         var inputIndex = Array.IndexOf([.. arguments], "-i");
         Assert.IsGreaterThanOrEqualTo(0, hardwareIndex);
-        Assert.IsGreaterThan(hardwareIndex, inputIndex);
+        Assert.IsTrue(hardwareIndex < inputIndex);
         Assert.AreEqual("auto", arguments[hardwareIndex + 1]);
         Assert.Contains("yuv420p", arguments.ToList());
     }
