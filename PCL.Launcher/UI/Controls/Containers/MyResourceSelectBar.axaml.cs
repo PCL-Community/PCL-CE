@@ -10,6 +10,7 @@ public partial class MyResourceSelectBar : MyCard
 {
     private readonly TranslateTransform _transSelect = new(0d, -10d);
     private int _shownCount;
+    private string AnimationKey => $"Resource Sidebar {uuid}";
 
     public MyResourceSelectBar()
     {
@@ -31,7 +32,7 @@ public partial class MyResourceSelectBar : MyCard
 
     public MyIconTextButton CancelButton => BtnSelectCancel;
 
-    /// <summary>当前是否正在执行滑动选择；滑动期间只同步文字，不触发回弹动画。</summary>
+    /// <summary>当前是否正在执行滑动选择；滑动期间不重复触发数量增加的回弹动画。</summary>
     public bool IsSwipeActive { get; set; }
 
     public void UpdateSelection(
@@ -41,8 +42,11 @@ public partial class MyResourceSelectBar : MyCard
         bool animate = true)
     {
         LabSelect.Text = text;
+        var canAnimate = animate && ContainerAnimation.CanAnimate(this);
         if (!visible)
         {
+            if (_shownCount == 0 && canAnimate && AnimationService.IsAnimationRunning(AnimationKey))
+                return;
             _shownCount = 0;
             if (!IsVisible)
             {
@@ -50,19 +54,16 @@ public partial class MyResourceSelectBar : MyCard
                 return;
             }
 
-            if (!animate || !ContainerAnimation.CanAnimate(this))
+            if (!canAnimate)
                 HideInstant();
             else
                 HideAnimated();
             return;
         }
 
-        var shouldAnimate = animate
-            && !IsSwipeActive
-            && ContainerAnimation.CanAnimate(this);
-        if (!IsVisible)
+        if (!IsVisible || _shownCount == 0)
         {
-            if (shouldAnimate)
+            if (canAnimate)
                 ShowAnimated();
             else
                 ShowInstant();
@@ -70,9 +71,9 @@ public partial class MyResourceSelectBar : MyCard
             return;
         }
 
-        if (count > _shownCount && shouldAnimate)
+        if (count > _shownCount && canAnimate && !IsSwipeActive)
             ShowAnimated();
-        else if (!shouldAnimate)
+        else if (!canAnimate)
             ShowInstant();
 
         _shownCount = count;
@@ -80,51 +81,59 @@ public partial class MyResourceSelectBar : MyCard
 
     private void ShowAnimated()
     {
+        RenderTransform = _transSelect;
+        if (!IsVisible)
+        {
+            Opacity = 0d;
+            _transSelect.Y = -10d;
+        }
         IsVisible = true;
         AnimationService.Run(
             new List<IAnimation>
             {
                 new OpacityAnimation(this, 1d - Opacity, 60),
                 new TranslateYAnimation(
-                    _transSelect,
+                    this,
                     -27d - _transSelect.Y,
                     120,
                     ease: new FluentEaseOut(EasePower.Weak)),
                 new TranslateYAnimation(
-                    _transSelect,
+                    this,
                     3d,
                     150,
                     120,
                     new FluentEaseInOut(EasePower.Weak)),
                 new TranslateYAnimation(
-                    _transSelect,
+                    this,
                     -1d,
                     90,
                     270,
                     new FluentEaseInOut(EasePower.Weak))
             },
-            "Resource Sidebar");
+            AnimationKey);
     }
 
     private void HideAnimated()
     {
+        RenderTransform = _transSelect;
         AnimationService.Run(
             new List<IAnimation>
             {
                 new OpacityAnimation(this, -Opacity, 90),
                 new TranslateYAnimation(
-                    _transSelect,
+                    this,
                     -10d - _transSelect.Y,
                     90,
                     ease: new FluentEaseIn(EasePower.Weak)),
                 new ActionAnimation(() => IsVisible = false, true)
             },
-            "Resource Sidebar");
+            AnimationKey);
     }
 
     private void ShowInstant()
     {
-        AnimationService.CancelAnimationByName("Resource Sidebar");
+        AnimationService.CancelAnimationByName(AnimationKey);
+        RenderTransform = _transSelect;
         IsVisible = true;
         Opacity = 1d;
         _transSelect.Y = -25d;
@@ -132,7 +141,7 @@ public partial class MyResourceSelectBar : MyCard
 
     private void HideInstant()
     {
-        AnimationService.CancelAnimationByName("Resource Sidebar");
+        AnimationService.CancelAnimationByName(AnimationKey);
         IsVisible = false;
         Opacity = 0d;
         _transSelect.Y = -10d;
