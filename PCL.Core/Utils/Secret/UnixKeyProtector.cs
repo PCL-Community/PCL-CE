@@ -3,15 +3,15 @@ using System.IO;
 using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
+using PCL.Core.App;
 using PCL.Core.Logging;
 using PCL.Core.Utils.Encryption;
 
 namespace PCL.Core.Utils.Secret;
 
 /// <summary>
-///     非 Windows 平台的密钥保护：以「机器标识 + 当前用户 + 应用常量」经 HKDF 派生 AES-GCM 密钥。
-///     机器标识优先取 <c>/etc/machine-id</c>，缺失时使用 ApplicationData 下持久化的随机标识。
-///     密钥文件被复制到其他机器/用户后无法解密，交由上层隔离并重建。
+/// 非 Windows 平台的密钥保护：以「机器标识 + 当前用户 + 应用常量」经 HKDF 派生 AES-GCM 密钥。 机器标识优先取
+/// <c>/etc/machine-id</c>，缺失时使用 ApplicationData 下持久化的随机标识。 密钥文件被复制到其他机器/用户后无法解密，交由上层隔离并重建。
 /// </summary>
 [UnsupportedOSPlatform("windows")]
 public sealed class UnixKeyProtector : IKeyProtector
@@ -96,10 +96,9 @@ public sealed class UnixKeyProtector : IKeyProtector
 
     private static string _GetOrCreateFallbackMachineId()
     {
-        var appDataDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        if (string.IsNullOrEmpty(appDataDir))
+        var dir = Paths.SharedData;
+        if (string.IsNullOrEmpty(dir))
             throw new NotSupportedException("无法确定机器标识的持久化目录");
-        var dir = Path.Combine(appDataDir, "PCLCE");
         var path = Path.Combine(dir, FallbackMachineIdFileName);
 
         try

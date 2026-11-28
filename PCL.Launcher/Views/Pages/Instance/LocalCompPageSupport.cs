@@ -27,6 +27,12 @@ internal static class LocalCompPageSupport
             item.SetChecked(selected, animate);
     }
 
+    public static void RefreshSelection(Panel list, Func<LocalComp.LocalCompFile, bool> isSelected)
+    {
+        foreach (var item in list.Children.OfType<MyLocalModItem>())
+            item.SetChecked(isSelected(item.Entry), true);
+    }
+
     public static void ShowSortMenu(
         Control anchor,
         IReadOnlyList<string> names,

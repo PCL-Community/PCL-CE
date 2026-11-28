@@ -1,0 +1,244 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="using:PCL.UI.Controls"
+             x:Class="PCL.UI.Controls.ThemeColorPicker">
+    <Grid RowDefinitions="Auto,10,Auto,8,Auto,8,Auto">
+        <Grid Grid.Row="0"
+              ColumnDefinitions="Auto,8,*">
+            <ui:MyComboBox x:Name="ComboFormat"
+                           Width="76"
+                           Height="28"
+                           VerticalAlignment="Top"
+                           SelectedIndex="0">
+                <ui:MyComboBoxItem Content="HSV" />
+                <ui:MyComboBoxItem Content="RGB" />
+                <ui:MyComboBoxItem Content="HEX" />
+            </ui:MyComboBox>
+
+            <Grid x:Name="ThreeFieldsHost"
+                  Grid.Column="2"
+                  ColumnDefinitions="Auto,*,8,Auto,*,8,Auto,*"
+                  VerticalAlignment="Top">
+                <TextBlock x:Name="LabelFirst"
+                           Margin="0,7,6,0"
+                           VerticalAlignment="Top"
+                           FontSize="11"
+                           Foreground="{DynamicResource ColorBrushGray3}"
+                           Text="H" />
+                <ui:MyTextBox x:Name="TextFirst"
+                              Grid.Column="1"
+                              MinWidth="0"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Top"
+                              MaxLength="6"
+                              TextAlignment="Center" />
+
+                <TextBlock x:Name="LabelSecond"
+                           Grid.Column="3"
+                           Margin="0,7,6,0"
+                           VerticalAlignment="Top"
+                           FontSize="11"
+                           Foreground="{DynamicResource ColorBrushGray3}"
+                           Text="S" />
+                <ui:MyTextBox x:Name="TextSecond"
+                              Grid.Column="4"
+                              MinWidth="0"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Top"
+                              MaxLength="6"
+                              TextAlignment="Center" />
+
+                <TextBlock x:Name="LabelThird"
+                           Grid.Column="6"
+                           Margin="0,7,6,0"
+                           VerticalAlignment="Top"
+                           FontSize="11"
+                           Foreground="{DynamicResource ColorBrushGray3}"
+                           Text="V" />
+                <ui:MyTextBox x:Name="TextThird"
+                              Grid.Column="7"
+                              MinWidth="0"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Top"
+                              MaxLength="6"
+                              TextAlignment="Center" />
+            </Grid>
+
+            <Grid x:Name="HexFieldsHost"
+                  Grid.Column="2"
+                  ColumnDefinitions="Auto,*"
+                  VerticalAlignment="Top"
+                  IsVisible="False">
+                <Border Width="28"
+                        Height="28"
+                        Margin="0,0,4,0"
+                        Background="{DynamicResource ColorBrush8}"
+                        CornerRadius="3">
+                    <TextBlock HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="13"
+                               FontWeight="Bold"
+                               Foreground="{DynamicResource ColorBrushGray3}"
+                               Text="#" />
+                </Border>
+                <ui:MyTextBox x:Name="TextHex"
+                              Grid.Column="1"
+                              MinWidth="0"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Top"
+                              MaxLength="9"
+                              TextAlignment="Center" />
+            </Grid>
+        </Grid>
+
+        <Border x:Name="SvHost"
+                Grid.Row="2"
+                Height="150"
+                BorderBrush="{DynamicResource ColorBrushGray5}"
+                BorderThickness="1"
+                ClipToBounds="True"
+                CornerRadius="4">
+            <Grid>
+                <Border x:Name="SvHueLayer"
+                        CornerRadius="3">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,0%"
+                                             EndPoint="100%,0%">
+                            <GradientStop Offset="0"
+                                          Color="#FFFFFFFF" />
+                            <GradientStop Offset="1"
+                                          Color="#FFFF0000" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+                <Border CornerRadius="3">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,0%"
+                                             EndPoint="0%,100%">
+                            <GradientStop Offset="0"
+                                          Color="#00000000" />
+                            <GradientStop Offset="1"
+                                          Color="#FF000000" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+                <Canvas x:Name="SvOverlay"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        IsHitTestVisible="False">
+                    <Grid x:Name="SvCursor"
+                          Width="14"
+                          Height="14">
+                        <Ellipse Stroke="#66000000"
+                                 StrokeThickness="3" />
+                        <Ellipse Stroke="White"
+                                 StrokeThickness="2" />
+                    </Grid>
+                </Canvas>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="4"
+                Height="22"
+                BorderBrush="{DynamicResource ColorBrushGray5}"
+                BorderThickness="1"
+                ClipToBounds="True"
+                CornerRadius="6">
+            <Border x:Name="HueHost"
+                    Height="20"
+                    Background="Transparent"
+                    ClipToBounds="True"
+                    CornerRadius="5">
+                <Grid>
+                    <Border>
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0%,0%"
+                                                 EndPoint="100%,0%">
+                                <GradientStop Offset="0"
+                                              Color="#FFFF0000" />
+                                <GradientStop Offset="0.1667"
+                                              Color="#FFFFFF00" />
+                                <GradientStop Offset="0.3333"
+                                              Color="#FF00FF00" />
+                                <GradientStop Offset="0.5"
+                                              Color="#FF00FFFF" />
+                                <GradientStop Offset="0.6667"
+                                              Color="#FF0000FF" />
+                                <GradientStop Offset="0.8333"
+                                              Color="#FFFF00FF" />
+                                <GradientStop Offset="1"
+                                              Color="#FFFF0000" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <Canvas x:Name="HueOverlay"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            IsHitTestVisible="False">
+                        <Border x:Name="HueCursor"
+                                Width="10"
+                                Height="20"
+                                Background="White"
+                                BorderBrush="#66000000"
+                                BorderThickness="1"
+                                CornerRadius="2" />
+                    </Canvas>
+                </Grid>
+            </Border>
+        </Border>
+
+        <Border Grid.Row="6"
+                Height="22"
+                BorderBrush="{DynamicResource ColorBrushGray5}"
+                BorderThickness="1"
+                ClipToBounds="True"
+                CornerRadius="6">
+            <Border x:Name="GradientHost"
+                    Height="20"
+                    Background="Transparent"
+                    ClipToBounds="True"
+                    CornerRadius="5">
+                <Grid>
+                    <Border x:Name="GradientLayer" />
+                    <Border Width="1"
+                            Height="20"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Background="#66000000"
+                            IsHitTestVisible="False" />
+                    <Canvas x:Name="GradientOverlay"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            IsHitTestVisible="False">
+                        <Border x:Name="GradientCursor"
+                                Width="10"
+                                Height="20"
+                                Background="White"
+                                BorderBrush="#66000000"
+                                BorderThickness="1"
+                                CornerRadius="2" />
+                    </Canvas>
+                </Grid>
+            </Border>
+        </Border>
+
+        <Canvas x:Name="ValueOverlay"
+                Grid.RowSpan="7"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                ClipToBounds="False"
+                IsHitTestVisible="False">
+            <Border x:Name="ValueTip"
+                    Padding="8,4"
+                    Background="{DynamicResource ColorBrushWhite}"
+                    BorderBrush="{DynamicResource ColorBrushGray5}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    IsVisible="False">
+                <TextBlock x:Name="ValueTipText"
+                           FontSize="11.5"
+                           Foreground="{DynamicResource ColorBrush1}" />
+            </Border>
+        </Canvas>
+    </Grid>
+</UserControl>

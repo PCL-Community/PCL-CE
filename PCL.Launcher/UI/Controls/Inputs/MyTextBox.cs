@@ -92,6 +92,11 @@ public class MyTextBox : TextBox
             RefreshColor(false);
             RefreshTextColor(false);
         };
+        ThemeRefreshWatcher.Watch(this, () =>
+        {
+            RefreshColor(false);
+            RefreshTextColor(false);
+        });
         Unloaded += (_, _) => StopAnimations();
     }
 

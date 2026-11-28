@@ -40,11 +40,15 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 
 | 版本 | 架构 | 支持情况 | 环境要求 |
 |---|---|---|---|
-| Windows 10 1809 (17763) 及以上，或 Windows 11 | x64、ARM64 | ✅ 完整支持 | [.NET 10 Runtime](https://get.dot.net/10) |
-| Windows 10 1607 (E) | x64 | ⚠️ 理论能跑，酌情提供社区支持 | [.NET 10 Runtime](https://get.dot.net/10) |
-| Windows 8.1、8、7 及更低版本 | / | ❌ 不支持 | / |
+| Windows 11 24H2 (E) / 25H2 或以上 | x64、ARM64 | ✅ 完整支持 | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows 10 21H2 / 22H2 | x64、ARM64 | ✅ 完整支持 | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows Server 2022 (20348) 或以上 | x64、ARM64 | ✅ 完整支持 | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows 10 1607 (E) / 1809 (E) | x64 | ⚠️ 有限支持 | [.NET 10 Runtime](https://get.dot.net/10) |
+| 其他 Windows 11 / 10 / Windows Server、Windows 8.x、7 或更低版本 | / | ❌ 不支持 | / |
 
-<small>`(E)` 指 Enterprise 或 ESU 版本。.NET 10 对 Windows 10 1607 和 1809 的官方支持仅限这些版本。</small>
+<small>`(E)` 指 Enterprise LTSC / ESU / Server 版本。</small>
+
+<small>位于官方支持周期内的 Windows Insider Preview 版本通常一并受到完整支持，但部分功能有时可能无法正常工作。遇到问题可以尝试提交 Issue。</small>
 
 ### Linux
 
@@ -52,7 +56,7 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 |---|---|---|---|
 | 常见 glibc 桌面发行版<br>（Ubuntu 22.04 及以上、Fedora 43 及以上、Arch Linux 等） | x64 | ✅ 支持 | [.NET 10 Runtime](https://get.dot.net/10)、X11、Wayland 实验 |
 | 同上 | ARM64 | ✅ 支持 | [.NET 10 Runtime](https://get.dot.net/10)、X11 |
-| 其他 glibc 桌面发行版 | x64、ARM64 | ⚠️ 理论能跑，酌情提供社区支持 | 需要 glibc 2.27 及以上，并能使用 X11 桌面 |
+| 其他 glibc 桌面发行版 | x64、ARM64 | ⚠️ 有限支持 | 需要 glibc 2.27 及以上，并能使用 X11 桌面 |
 | Alpine 等 musl 发行版 | x64、ARM64 | ❌ 不支持 | 当前产物尚未在 musl 环境验证 |
 
 <small>默认使用 X11。设置 `PCL_USE_WAYLAND=1` 可以尝试原生 Wayland。如果初始化失败，会自动回退到 X11。使用 Wayland 还需要安装 `libwayland-client` 和 `libxkbcommon`。</small>
@@ -61,16 +65,20 @@ PCL CE 是基于 PCL 开源代码二次开发的社区版本，包括了主线�
 
 | 版本 | 架构 | 支持情况 | 环境要求 |
 |---|---|---|---|
-| macOS 12 及以上 | Apple Silicon (ARM64)、Intel (x64) | ✅ 支持 | [.NET 10 Runtime](https://get.dot.net/10) |
+| macOS 15 Sequoia 或以上 | Apple Silicon (ARM64)、Intel (x64) | ✅ 支持 | [.NET 10 Runtime](https://get.dot.net/10) |
+| macOS 12 Monterey ~ 14 Sonoma | Apple Silicon (ARM64)、Intel (x64) | ⚠️ 有限支持 | [.NET 10 Runtime](https://get.dot.net/10) |
+| macOS 11 Big Sur 或更低版本 | / | ❌ 不支持 | / |
+
+<small>最新的 macOS Beta 版通常一并受到完整支持，但部分功能有时可能无法正常工作。遇到问题可以尝试提交 Issue。</small>
 
 **✅ 完整支持**：会尽量提供支持，但请先确保使用最新版本。
 
-**⚠️ 理论能跑，酌情提供社区支持**：这些平台通常可以运行，但无法保证所有功能正常。遇到问题时，社区会视情况协助。升级到受支持的系统版本可以获得更完整的支持。
+**⚠️ 有限支持**：这些平台通常可以运行，但无法保证所有功能正常。遇到问题时，社区会视情况协助。可能需要先升级到完整支持的平台才可以获得进一步支持。
 
 **❌ 不支持**：这些平台基本无法正常使用，甚至可能无法启动。请升级系统后再运行 PCL CE。
 
 **注**：
-- 社区只为最新版本提供支持。
+- 社区只为最新版本的启动器提供支持。
 - 有些问题与系统环境有关。例如系统组件不完整时，仍需升级系统才能继续获得支持。
 - 建议使用较新的操作系统，以获得更好的体验。
 - 在不受支持的系统上仍可尝试运行，但可能遇到更多问题。

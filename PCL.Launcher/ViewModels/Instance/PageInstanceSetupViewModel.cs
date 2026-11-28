@@ -73,7 +73,7 @@ public partial class PageInstanceSetupViewModel : ViewModelBase
     [ObservableProperty] public partial bool IgnoreJavaCompatibility { get; set; }
 
     [ObservableProperty] public partial bool DisableJlw { get; set; }
-    
+
     [ObservableProperty]
     public partial bool DisableJlwEnabled { get; set; } =
         ApplicationRuntime.Current.Platform.Java.SupportsJavaLaunchWrapper;

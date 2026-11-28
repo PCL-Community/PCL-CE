@@ -27,6 +27,7 @@ public partial class PageInstanceCompResource
     private readonly Comp.CompType _compType;
     private readonly DispatcherTimer _searchTimer;
     private readonly ResourceSwipeSelector _swipeSelector;
+    private readonly RadioButtonSelectionIndicator _filterSelectionIndicator;
 
     private string _currentFolderPath = string.Empty;
     private bool _isBuilding;
@@ -41,6 +42,10 @@ public partial class PageInstanceCompResource
     {
         _compType = compType;
         InitializeComponent();
+        _filterSelectionIndicator = new RadioButtonSelectionIndicator(
+            PanFilter,
+            FilterSelectionIndicator,
+            PanFilterSelect);
         DataContext = ViewModel;
         PanScroll = PanBack;
         SearchBox.SetLocalizedValue(MySearchBox.HintTextProperty, "Instance.Resource.Search.Hint");
@@ -137,7 +142,7 @@ public partial class PageInstanceCompResource
             HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
         BtnManageDownload.IsVisible &= ViewModel.ShowManageDownload;
         BtnHintDownload.IsVisible = ViewModel.ShowHintDownload;
-        BtnManageSelectAll.Click += (_, _) => ToggleSelectAll();
+        BtnManageSelectAll.Click += (_, _) => UpdateSelection(ViewModel.ToggleSelectAll);
         BtnManageInfoExport.Click += (_, _) => _ = ExportInfoAsync();
         BtnHintBack.Click += (_, _) => GoBackToParentFolder();
         BtnHintInstall.Click += (_, _) => InstallFromFiles();
@@ -164,6 +169,7 @@ public partial class PageInstanceCompResource
                 if (sender.Tag is string tag && int.TryParse(tag, out var index))
                     ViewModel.ApplyFilter(index);
                 BuildList();
+                Dispatcher.UIThread.Post(_filterSelectionIndicator.Update, DispatcherPriority.Loaded);
             };
         BtnSort.Click += (_, _) => ShowSortMenu();
 
@@ -173,11 +179,7 @@ public partial class PageInstanceCompResource
         PanSelect.FavoritesButton.Click += (_, _) => ShowFavoritesMenu();
         PanSelect.ShareButton.Click += (_, _) => ShareSelected();
         PanSelect.DeleteButton.Click += (_, _) => DeleteSelected();
-        PanSelect.CancelButton.Click += (_, _) =>
-        {
-            ViewModel.ClearSelection();
-            BuildList();
-        };
+        PanSelect.CancelButton.Click += (_, _) => UpdateSelection(ViewModel.ClearSelection);
 
         AddHandler(
             KeyDownEvent,
@@ -188,8 +190,7 @@ public partial class PageInstanceCompResource
                     return;
                 if (SearchBox.IsKeyboardFocusWithin && !string.IsNullOrEmpty(SearchBox.Text))
                     return;
-                ViewModel.SetAllSelected(true);
-                BuildList();
+                UpdateSelection(() => ViewModel.SetAllSelected(true));
                 e.Handled = true;
             },
             RoutingStrategies.Tunnel);
@@ -533,6 +534,8 @@ public partial class PageInstanceCompResource
 
         item.CheckedChanged += (_, value) =>
         {
+            if (ViewModel.IsSelected(entry) == value)
+                return;
             ViewModel.SetSelected(entry, value);
             RefreshSelectBar();
         };
@@ -649,14 +652,15 @@ public partial class PageInstanceCompResource
         PanSelect.UpdateSelection(
             true,
             ViewModel.SelectedPaths.Count,
-            ViewModel.SelectedText,
-            !PanSelect.IsSwipeActive);
+            ViewModel.SelectedText);
     }
 
-    private void ToggleSelectAll()
+    private void UpdateSelection(Action update)
     {
-        ViewModel.ToggleSelectAll();
-        BuildList();
+        _swipeSelector.Cancel();
+        update();
+        LocalCompPageSupport.RefreshSelection(PanList, ViewModel.IsSelected);
+        RefreshSelectBar();
     }
 
     private void SetSelectedEnabled(bool enabled)

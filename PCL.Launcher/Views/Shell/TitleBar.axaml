@@ -9,6 +9,8 @@
         <controls:AnimatedBackgroundGrid x:Name="TitleBackground"
                                          BackgroundBrush="{DynamicResource ColorBrush3}"
                                          IsHitTestVisible="False" />
+        <Border x:Name="TitleThemeGradient"
+                IsHitTestVisible="False" />
         <Grid x:Name="PanTitleMain"
               ColumnDefinitions="1*,Auto,1*">
             <Grid x:Name="PanTitleLeft"

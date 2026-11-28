@@ -26,12 +26,8 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
         DataContext = ViewModel;
         PanScroll = PanBack;
         Grid.SetIsSharedSizeScope(PanMain, true);
-        TitleText.Bind(
-            TextBlock.TextProperty,
-            new Binding(nameof(PageInstanceSavesInfoViewModel.TitleDisplay))
-            {
-                Source = ViewModel
-            });
+        RowAllowCommands.ColumnDefinitions[0].SharedSizeGroup = "SavesInfoLabel";
+        RowDifficulty.ColumnDefinitions[0].SharedSizeGroup = "SavesInfoLabel";
         BtnErrorRetry.Click += (_, _) => Reload();
 
         ComboAllowCommands.SelectionChanged += (_, _) =>
@@ -61,7 +57,7 @@ public partial class PageInstanceSavesInfo : MyPageRight, IRefreshable
         _saveFolder = parameter is string routedSave ? routedSave : null;
         if (string.IsNullOrEmpty(_saveFolder))
             _saveFolder = PageInstanceSavesLeft.CurrentSave;
-        Reload();
+        PageEnterTask = ReloadAsync();
     }
 
     public void Reload()

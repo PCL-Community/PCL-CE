@@ -82,6 +82,7 @@ public partial class MyButton : Border
 
         Loaded += (_, _) => RefreshColor(false);
         ActualThemeVariantChanged += (_, _) => RefreshColor(false);
+        ThemeRefreshWatcher.Watch(this, () => RefreshColor(false));
         Unloaded += (_, _) => _StopAnimations();
     }
 

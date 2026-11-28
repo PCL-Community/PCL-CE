@@ -1,9 +1,10 @@
 namespace PCL.Platform;
 
-/// <summary>Windows 运行环境检查：推荐 Windows 10 1809 及以上。</summary>
+/// <summary>Windows 运行环境检查</summary>
 public sealed class WindowsRuntimeEnvironmentService : RuntimeEnvironmentServiceBase
 {
-    protected override bool IsOutdatedSystem() => !OperatingSystem.IsWindowsVersionAtLeast(10, 0, 17763);
+    // 推荐至少 Windows 10 21H2 (19044)
+    protected override bool IsOutdatedSystem() => !OperatingSystem.IsWindowsVersionAtLeast(10, 0, 19044);
 
     protected override bool IsInTempFolder(string executablePath) =>
         base.IsInTempFolder(executablePath)

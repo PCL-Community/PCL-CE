@@ -29,6 +29,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         InitializeComponent();
         DataContext = ViewModel;
         PanScroll = PanBack;
+        PageEnterContent = PanAllBack;
         ViewModel.SetPage(this);
         BtnFilterAll.Bind(
             MyRadioButton.TextProperty,
@@ -92,11 +93,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         BtnManageDownload.Click += (_, _) => ViewModel.DownloadNewCommand.Execute(null);
         BtnManageDownload.IsVisible =
             HiddenFeatureState.ForceShow || !Config.Preference.Hide.PageDownload;
-        BtnManageSelectAll.Click += (_, _) =>
-        {
-            ViewModel.ToggleSelectAll();
-            BuildList();
-        };
+        BtnManageSelectAll.Click += (_, _) => UpdateSelection(ViewModel.ToggleSelectAll);
         BtnManageInfoExport.Click += (_, _) => _ = ViewModel.ExportInfoAsync();
 
         foreach (var button in new[]
@@ -131,11 +128,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
                 PanSelect.DeleteButton.LastClickKeyModifiers.HasFlag(KeyModifiers.Shift);
             _ = ViewModel.DeleteAsync(targets, permanent);
         };
-        PanSelect.CancelButton.Click += (_, _) =>
-        {
-            ViewModel.ClearSelection();
-            BuildList();
-        };
+        PanSelect.CancelButton.Click += (_, _) => UpdateSelection(ViewModel.ClearSelection);
 
         BtnHintInstall.Click += (_, _) => _ = InstallFromFilesAsync();
         BtnHintDownload.Click += (_, _) => ViewModel.DownloadNewCommand.Execute(null);
@@ -154,8 +147,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
                     return;
                 if (SearchBox.IsKeyboardFocusWithin && !string.IsNullOrEmpty(SearchBox.Text))
                     return;
-                ViewModel.ToggleSelectAll();
-                BuildList();
+                UpdateSelection(ViewModel.ToggleSelectAll);
                 e.Handled = true;
             },
             RoutingStrategies.Tunnel);
@@ -199,7 +191,10 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         ViewModel.ResetListViewState();
         SearchBox.Text = string.Empty;
         PanBack.ScrollToHome();
-        Reload();
+        PanLoad.Opacity = 1d;
+        PanLoad.RenderTransform = null;
+        PanLoad.IsHitTestVisible = true;
+        PageEnterTask = ReloadAsync();
     }
 
     public override void OnNavigatedFrom()
@@ -207,7 +202,9 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         _swipeSelector.Cancel();
     }
 
-    public void Reload()
+    public void Reload() => _ = ReloadAsync();
+
+    private Task ReloadAsync()
     {
         ViewModel.ResetListViewState();
         SearchBox.Text = string.Empty;
@@ -216,7 +213,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         if (path is null)
         {
             UpdateEmptyState();
-            return;
+            return Task.CompletedTask;
         }
 
         PanLoad.IsVisible = true;
@@ -227,7 +224,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         {
             LoadingState = LoadingState.Run
         };
-        _ = LoadAsync();
+        return LoadAsync();
     }
 
     private async Task LoadAsync()
@@ -293,6 +290,14 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
             PanList.Children);
     }
 
+    private void UpdateSelection(Action update)
+    {
+        _swipeSelector.Cancel();
+        update();
+        LocalCompPageSupport.RefreshSelection(PanList, ViewModel.IsSelected);
+        RefreshSelectBar();
+    }
+
     private void RefreshSelectBar()
     {
         PanListBack.Margin = new Thickness(
@@ -315,8 +320,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         PanSelect.UpdateSelection(
             true,
             ViewModel.SelectedKeys.Count,
-            ViewModel.SelectedText,
-            !PanSelect.IsSwipeActive);
+            ViewModel.SelectedText);
     }
 
     private void ShowSortMenu()
@@ -368,6 +372,8 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         };
         item.CheckedChanged += (_, value) =>
         {
+            if (ViewModel.IsSelected(entry) == value)
+                return;
             ViewModel.SetSelected(entry, value);
             RefreshSelectBar();
         };

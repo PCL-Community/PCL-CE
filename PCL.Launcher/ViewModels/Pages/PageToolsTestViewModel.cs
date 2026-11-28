@@ -176,7 +176,7 @@ public partial class PageToolsTestViewModel : ViewModelBase
         try
         {
             var iconPath = Path.Combine(
-                Paths.SharedLocalData,
+                Paths.Data,
                 "icons",
                 "pcl-community-edition.png");
             Directory.CreateDirectory(Path.GetDirectoryName(iconPath)!);

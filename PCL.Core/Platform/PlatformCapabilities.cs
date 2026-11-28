@@ -13,7 +13,8 @@ public sealed record PlatformCapabilities : IPlatformCapabilities
         SupportsWindowsStoreDependencies = true,
         SuppressAltMenu = true,
         SupportsDisplayProtocolSelection = false,
-        SupportsTitleBarStyleSelection = false
+        SupportsTitleBarStyleSelection = false,
+        SupportsCustomThemes = false
     };
 
     public static PlatformCapabilities Linux { get; } = new()
@@ -24,7 +25,8 @@ public sealed record PlatformCapabilities : IPlatformCapabilities
         SupportsWindowsStoreDependencies = false,
         SuppressAltMenu = false,
         SupportsDisplayProtocolSelection = true,
-        SupportsTitleBarStyleSelection = false
+        SupportsTitleBarStyleSelection = false,
+        SupportsCustomThemes = true
     };
 
     public static PlatformCapabilities MacOs { get; } = new()
@@ -35,7 +37,8 @@ public sealed record PlatformCapabilities : IPlatformCapabilities
         SupportsWindowsStoreDependencies = false,
         SuppressAltMenu = false,
         SupportsDisplayProtocolSelection = false,
-        SupportsTitleBarStyleSelection = true
+        SupportsTitleBarStyleSelection = true,
+        SupportsCustomThemes = true
     };
 
     public required bool SupportsBundledLauncher { get; init; }
@@ -45,4 +48,5 @@ public sealed record PlatformCapabilities : IPlatformCapabilities
     public required bool SuppressAltMenu { get; init; }
     public required bool SupportsDisplayProtocolSelection { get; init; }
     public required bool SupportsTitleBarStyleSelection { get; init; }
+    public required bool SupportsCustomThemes { get; init; }
 }

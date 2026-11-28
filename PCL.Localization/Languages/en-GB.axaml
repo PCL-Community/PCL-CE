@@ -24,7 +24,8 @@
     <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- The current system is 32-bit. PCL CE and newer versions of Minecraft no longer support it. It is strongly recommended to reinstall a 64-bit system before playing.</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.TempFolder">- PCL CE is running from a temporary folder. Please extract PCL CE from the compressed file before using it, otherwise game saves or settings may be lost.</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.Title">Environment warning</sys:String>
-    <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- The Windows version does not meet the recommended requirement. Windows 10 1809 or later is recommended. Consider upgrading Windows.</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- The Windows version does not meet the recommended requirement. Windows 10 21H2 or later is recommended. Consider upgrading Windows.</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.MacOsVersion">- The macOS version does not meet the recommended requirement. macOS 15 Sequoia or later is recommended. Consider upgrading macOS.</sys:String>
     <sys:String x:Key="Application.InitializationError.Path">PCL CE path: {0}</sys:String>
     <sys:String x:Key="Application.InitializationError.PathUnavailable">Unable to obtain</sys:String>
     <sys:String x:Key="Application.InitializationError.Title">PCL CE initialisation error</sys:String>
@@ -3142,7 +3143,11 @@
 
     <!-- Setup.Ui.Basic -->
 
+    <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial">Advanced material</sys:String>
+    <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial.ToolTip">When enabled, blur effects will be applied to some transparent areas, such as cards.&#xA;Note that this feature consumes significant GPU resources and may cause lag!</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.BlueHint">Blue, blue, and more blue! Want to escape from the blue dilemma? Use the official snapshot build!</sys:String>
+    <sys:String x:Key="Setup.Ui.Basic.BlurRadius">Blur radius</sys:String>
+    <sys:String x:Key="Setup.Ui.Basic.BlurRadius.ToolTip">Sets the sampling radius of the blur effect. Larger values produce stronger blur.</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.GetSnapshot">Get official snapshot build</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.LockWindow">Lock launcher size</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.Opacity">Opacity</sys:String>
@@ -3279,6 +3284,13 @@
     <sys:String x:Key="Setup.Ui.Theme.Color.CatBlue">LTCat Blue</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.CrashBlue">Crash Blue</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.Hmcl">HMCL</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Color.Custom">Custom</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Hue">Hue</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Sv">Saturation &amp; value</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Saturation">Saturation</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Lightness">Lightness</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.HueDelta">Hue gradient</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.TitleBarGradient">Title bar gradient</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.SkyBlue">Sky Blue</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Dark">Dark</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.DarkColor">Dark theme colour</sys:String>
@@ -3286,7 +3298,15 @@
     <sys:String x:Key="Setup.Ui.Theme.FollowSystem">Follow system</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Light">Light</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.LightColor">Light theme colour</sys:String>
-    <sys:String x:Key="Setup.Ui.Theme.Title">Theme</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Title">Theme &amp; colours</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Appearance.Title">Appearance</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Theme">Theme</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Theme.ToolTip">The launcher's theme colour. Each appearance mode can have its own theme.</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Light">Light mode</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Dark">Dark mode</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Palette">Theme palette</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Title">Custom colours</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.InvalidColor">Invalid colour format</sys:String>
 
     <!-- Setup.Update -->
 

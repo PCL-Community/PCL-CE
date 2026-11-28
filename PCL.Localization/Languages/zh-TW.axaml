@@ -24,7 +24,8 @@
     <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- 目前系統為 32 位元，不受 PCL CE 和新版 Minecraft 支援，強烈建議重灌為 64 位元系統後再進行遊戲</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.TempFolder">- PCL CE 正在暫存資料夾執行，請將 PCL CE 從壓縮檔中解壓縮後再使用，否則可能導致遊戲存檔或設定遺失</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.Title">環境警告</sys:String>
-    <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- Windows 版本低於建議需求；建議使用 Windows 10 1809 或更新版本，並考慮升級 Windows</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- Windows 版本低於建議需求；建議使用 Windows 10 21H2 或更新版本，並考慮升級 Windows</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.MacOsVersion">- macOS 版本低於建議需求；建議使用 macOS 15 Sequoia 或更新版本，並考慮升級 macOS</sys:String>
     <sys:String x:Key="Application.InitializationError.Path">PCL CE 所在路徑：{0}</sys:String>
     <sys:String x:Key="Application.InitializationError.PathUnavailable">取得失敗</sys:String>
     <sys:String x:Key="Application.InitializationError.Title">PCL CE 初始化錯誤</sys:String>
@@ -3142,7 +3143,11 @@
 
     <!-- Setup.Ui.Basic -->
 
+    <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial">高階材質</sys:String>
+    <sys:String x:Key="Setup.Ui.Basic.AdvancedMaterial.ToolTip">啟用此功能後會在部分透明區域（例如卡片）實現模糊效果。&#xA;請注意，該功能會消耗大量 GPU 算力，並導致卡頓！</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.BlueHint">藍色，藍色，還是藍色！想要逃離藍色困境？請使用官方快照版！</sys:String>
+    <sys:String x:Key="Setup.Ui.Basic.BlurRadius">模糊半徑</sys:String>
+    <sys:String x:Key="Setup.Ui.Basic.BlurRadius.ToolTip">設定模糊效果的取樣半徑，值越大模糊效果越強。</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.GetSnapshot">取得官方快照版</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.LockWindow">鎖定啟動器大小</sys:String>
     <sys:String x:Key="Setup.Ui.Basic.Opacity">不透明度</sys:String>
@@ -3279,6 +3284,13 @@
     <sys:String x:Key="Setup.Ui.Theme.Color.CatBlue">龍貓藍</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.CrashBlue">當機藍</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.Hmcl">HMCL</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Color.Custom">自訂</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Hue">色相</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Sv">飽和度與明度</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Saturation">飽和度</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Lightness">明度</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.HueDelta">色相漸變</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.TitleBarGradient">標題欄漸變</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Color.SkyBlue">天空藍</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Dark">深色</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.DarkColor">深色配色</sys:String>
@@ -3286,7 +3298,15 @@
     <sys:String x:Key="Setup.Ui.Theme.FollowSystem">跟隨系統</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.Light">淺色</sys:String>
     <sys:String x:Key="Setup.Ui.Theme.LightColor">淺色配色</sys:String>
-    <sys:String x:Key="Setup.Ui.Theme.Title">主題</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Title">主題與配色</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Appearance.Title">外觀模式</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Theme">主題</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Theme.ToolTip">啟動器的主題顏色，支援為每個外觀模式單獨設定主題。</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Light">淺色模式</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Mode.Dark">深色模式</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Palette">主題色階</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.Title">自訂配色</sys:String>
+    <sys:String x:Key="Setup.Ui.Theme.Custom.InvalidColor">顏色格式無效</sys:String>
 
     <!-- Setup.Update -->
 

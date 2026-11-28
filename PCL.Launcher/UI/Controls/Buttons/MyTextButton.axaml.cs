@@ -58,6 +58,7 @@ public partial class MyTextButton : Label
 
         Loaded += (_, _) => RefreshColor(false);
         ActualThemeVariantChanged += (_, _) => RefreshColor(false);
+        ThemeRefreshWatcher.Watch(this, () => RefreshColor(false));
         Unloaded += (_, _) =>
         {
             AnimationService.CancelAnimationByName(ColorKey);

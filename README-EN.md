@@ -40,11 +40,15 @@ Everyone is welcome to try it out!
 
 | Version | Architecture | Support | Requirements |
 |---|---|---|---|
-| Windows 10 1809 (17763) or later, or Windows 11 | x64, ARM64 | ✅ Fully supported | [.NET 10 Runtime](https://get.dot.net/10) |
-| Windows 10 1607 (E) | x64 | ⚠️ Expected to run; community support offered at discretion | [.NET 10 Runtime](https://get.dot.net/10) |
-| Windows 8.1, 8, 7 or earlier | / | ❌ Not supported | / |
+| Windows 11 24H2 (E) / 25H2 or later | x64、ARM64 | ✅ Fully supported | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows 10 21H2 / 22H2 | x64、ARM64 | ✅ Fully supported | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows Server 2022 (20348) or later | x64、ARM64 | ✅ Fully supported | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows 10 1607 (E) / 1809 (E) | x64 | ⚠️ Limited Support | [.NET 10 Runtime](https://get.dot.net/10) |
+| Other Windows 11 / 10 / Windows Server、Windows 8.x、7 or earlier | / | ❌ Not supported | / |
 
-<small>`(E)` means Enterprise or ESU editions. .NET 10 officially supports Windows 10 1607 and 1809 only on these editions.</small>
+<small>`(E)` means Enterprise LTSC / ESU / Server editions.</small>
+
+<small>Windows Insider Preview versions with official support are usually fully supported as well, but sometimes a few features may not work properly. Please try to submit an Issue if you encounter any problems.</small>
 
 ### Linux
 
@@ -52,7 +56,7 @@ Everyone is welcome to try it out!
 |---|---|---|---|
 | Common glibc desktop distributions<br>(Ubuntu 22.04 or later, Fedora 43 or later, Arch Linux, etc.) | x64 | ✅ Supported | [.NET 10 Runtime](https://get.dot.net/10), X11, Wayland experimental |
 | Same as above | ARM64 | ✅ Supported | [.NET 10 Runtime](https://get.dot.net/10), X11 |
-| Other glibc desktop distributions | x64, ARM64 | ⚠️ Expected to run; community support offered at discretion | Requires glibc 2.27 or later and a working X11 desktop |
+| Other glibc desktop distributions | x64, ARM64 | ⚠️ Limited Support | Requires glibc 2.27 or later and a working X11 desktop |
 | Alpine and other musl distributions | x64, ARM64 | ❌ Not supported | Current artifacts have not been tested on musl |
 
 <small>X11 is used by default. Set `PCL_USE_WAYLAND=1` to try native Wayland. If initialization fails, it falls back to X11 automatically. Wayland also requires `libwayland-client` and `libxkbcommon`.</small>
@@ -61,11 +65,15 @@ Everyone is welcome to try it out!
 
 | Version | Architecture | Support | Requirements |
 |---|---|---|---|
-| macOS 12 or later | Apple Silicon (ARM64), Intel (x64) | ✅ Supported | [.NET 10 Runtime](https://get.dot.net/10) |
+| macOS 15 Sequoia or later | Apple Silicon (ARM64), Intel (x64) | ✅ Supported | [.NET 10 Runtime](https://get.dot.net/10) |
+| macOS 12 Monterey ~ 14 Sonoma | Apple Silicon (ARM64), Intel (x64) | ⚠️ Limited support | [.NET 10 Runtime](https://get.dot.net/10) |
+| macOS 11 Big Sur or earlier | / | ❌ Not supported | / |
+
+<small>The latest macOS Beta version is usually fully supported as well, but sometimes a few features may not work properly. Please try to submit an Issue if you encounter any problems.</small>
 
 **✅ Fully supported**: We will provide as much support as possible. Please make sure you are using the latest version.
 
-**⚠️ Expected to run; community support offered at discretion**: These platforms usually work, but we cannot guarantee that every feature will work correctly. The community will help when possible. Upgrading to a supported OS version gives you more complete support.
+**⚠️ Limited support**: These platforms usually work, but we cannot guarantee that every feature will work correctly. The community will help when possible. You may have to upgrade to a fully supported platform before getting further support.
 
 **❌ Not supported**: These platforms generally cannot run PCL CE, and may not even start. Please upgrade your system before using PCL CE.
 

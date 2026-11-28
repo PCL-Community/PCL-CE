@@ -80,10 +80,9 @@
                 </StackPanel>
             </ui:MyCard>
 
-            <ui:MyCard x:Name="CardUpdate"
-                       Margin="0,15"
-                       IsVisible="{Binding ShowUpdateCard}">
-                <StackPanel Margin="20,20,20,20">
+            <ui:MyCard x:Name="CardUpdate" Margin="0,15">
+                <StackPanel Margin="20,20,20,20"
+                            IsVisible="{Binding ShowUpdateCard}">
                     <Grid ColumnDefinitions="50,10,*,Auto"
                           RowDefinitions="29,1,20,8,Auto,10,Auto">
                         <ui:MyImage x:Name="ImgUpdateIcon"
@@ -139,12 +138,8 @@
                                          Text="{loc:Loc Setup.Update.Changelog.MoreInfo}" />
                     </Grid>
                 </StackPanel>
-            </ui:MyCard>
-
-            <ui:MyCard x:Name="CardCheck"
-                       Margin="0,15"
-                       IsVisible="{Binding ShowCheckCard}">
-                <StackPanel Margin="20,20,20,20">
+                <StackPanel Margin="20,20,20,20"
+                            IsVisible="{Binding ShowCheckCard}">
                     <Grid ColumnDefinitions="50,10,*,80,10,100"
                           RowDefinitions="29,1,20">
                         <Image Grid.Row="0"

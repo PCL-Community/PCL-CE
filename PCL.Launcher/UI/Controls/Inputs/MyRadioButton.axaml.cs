@@ -89,6 +89,7 @@ public partial class MyRadioButton : UserControl
         InitializeComponent();
         PanBackElement.Padding = Padding;
         RefreshLogoHostVisibility();
+        ThemeRefreshWatcher.Watch(this, () => RefreshColor(false));
 
         Loaded += (_, _) =>
         {
@@ -608,6 +609,12 @@ public partial class MyRadioButton : UserControl
                     background = semiTransparent;
                     time = AnimationTimeOfMouseOut;
                 }
+            }
+
+            if (UseExternalSelectionIndicator)
+            {
+                var alpha = Checked ? 0 : _isMouseDown ? 0x78 : IsPointerOver ? 0x32 : 0;
+                background = WithAlpha(ColorType == ColorState.White ? Colors.White : accent, (byte)alpha);
             }
 
             var effective = animate && InputAnimation.CanAnimate(this);

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -9,6 +10,8 @@ namespace PCL.Core.Test.IO;
 
 [TestClass]
 [OSCondition(OperatingSystems.Linux)]
+[DoNotParallelize]
+[SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
 public class RecycleBinTest
 {
     private readonly IRecycleBinService _bin = new ServiceCollection()
@@ -16,7 +19,11 @@ public class RecycleBinTest
         .BuildServiceProvider()
         .GetRequiredService<IRecycleBinService>();
 
+    private string _binRoot = string.Empty;
     private string? _originalDataHome;
+    private string? _originalGioDest;
+    private string? _originalGioLog;
+    private string? _originalPath;
     private string _sandboxRoot = string.Empty;
     private string _trashRoot = string.Empty;
 
@@ -24,18 +31,27 @@ public class RecycleBinTest
     public void Initialize()
     {
         _originalDataHome = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+        _originalPath = Environment.GetEnvironmentVariable("PATH");
+        _originalGioDest = Environment.GetEnvironmentVariable("GIO_DEST");
+        _originalGioLog = Environment.GetEnvironmentVariable("GIO_LOG");
         _sandboxRoot = Path.Combine(
             AppContext.BaseDirectory,
             $"recycle-bin-test-{Guid.NewGuid().ToString("N")[..8]}");
         _trashRoot = Path.Combine(_sandboxRoot, "xdg-data");
+        _binRoot = Path.Combine(_sandboxRoot, "bin");
         Directory.CreateDirectory(_sandboxRoot);
+        Directory.CreateDirectory(_binRoot);
         Environment.SetEnvironmentVariable("XDG_DATA_HOME", _trashRoot);
+        Environment.SetEnvironmentVariable("PATH", _binRoot);
     }
 
     [TestCleanup]
     public void Cleanup()
     {
         Environment.SetEnvironmentVariable("XDG_DATA_HOME", _originalDataHome);
+        Environment.SetEnvironmentVariable("PATH", _originalPath);
+        Environment.SetEnvironmentVariable("GIO_DEST", _originalGioDest);
+        Environment.SetEnvironmentVariable("GIO_LOG", _originalGioLog);
         try
         {
             if (Directory.Exists(_sandboxRoot)) Directory.Delete(_sandboxRoot, true);
@@ -114,5 +130,45 @@ public class RecycleBinTest
         var outcome = _bin.Move(Path.Combine(_sandboxRoot, "not-there"), out var error);
         Assert.AreEqual(RecycleBinOutcome.Failed, outcome);
         Assert.IsFalse(string.IsNullOrWhiteSpace(error));
+    }
+
+    [TestMethod]
+    public void Move_PrefersGioTrash()
+    {
+        var gio = Path.Combine(_binRoot, "gio");
+        File.WriteAllText(
+            gio,
+            "#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$GIO_LOG\"\nmv \"$3\" \"$GIO_DEST\"\n");
+        File.SetUnixFileMode(
+            gio,
+            UnixFileMode.UserRead
+            | UnixFileMode.UserWrite
+            | UnixFileMode.UserExecute);
+        var destination = Path.Combine(_sandboxRoot, "gio-dest");
+        Directory.CreateDirectory(destination);
+        var log = Path.Combine(_sandboxRoot, "gio.log");
+        Environment.SetEnvironmentVariable("GIO_DEST", destination);
+        Environment.SetEnvironmentVariable("GIO_LOG", log);
+        Environment.SetEnvironmentVariable(
+            "PATH",
+            string.IsNullOrEmpty(_originalPath)
+                ? _binRoot
+                : _binRoot + Path.PathSeparator + _originalPath);
+
+        var source = Path.Combine(_sandboxRoot, "via-gio.txt");
+        File.WriteAllText(source, "gio-bytes");
+
+        var outcome = _bin.Move(source, out var error);
+
+        Assert.AreEqual(RecycleBinOutcome.Moved, outcome, error);
+        Assert.IsTrue(File.Exists(log), "假 gio 没有被调用");
+        Assert.IsFalse(File.Exists(source));
+        Assert.IsTrue(File.Exists(Path.Combine(destination, "via-gio.txt")));
+        Assert.IsFalse(
+            Directory.Exists(Path.Combine(_trashRoot, "Trash", "files")),
+            "gio 成功时不应再走原生回收站");
+        Assert.Contains("trash", File.ReadAllLines(log));
+        Assert.Contains("--", File.ReadAllLines(log));
+        Assert.Contains(source, File.ReadAllLines(log));
     }
 }

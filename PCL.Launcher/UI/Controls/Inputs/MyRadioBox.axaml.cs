@@ -61,6 +61,7 @@ public partial class MyRadioBox : UserControl, IMyRadio
         PointerExited += Radiobox_MouseLeave;
         KeyboardActivation.Attach(this, PerformClick);
         Loaded += (_, _) => SyncUI(false);
+        ThemeRefreshWatcher.Watch(this, () => SyncUI(false));
         Unloaded += (_, _) => StopAnimations();
     }
 

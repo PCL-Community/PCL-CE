@@ -1,4 +1,5 @@
 ﻿using System.IO.Compression;
+using PCL.Core.App;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
 using PCL.Core.Platform;
@@ -120,6 +121,6 @@ public static partial class GameLaunch
             : ApplicationRuntime
                 .GetService<IPlatformPathService>()
                 ?.GetFallbackNativesDirectory()
-            ?? Path.Combine(Path.GetTempPath(), "PCLCE", "natives");
+            ?? Path.Combine(Paths.Temp, "natives");
     }
 }

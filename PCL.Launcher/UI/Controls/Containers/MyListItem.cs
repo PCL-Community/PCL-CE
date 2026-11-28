@@ -85,6 +85,7 @@ public partial class MyListItem : Grid, IMyRadio
             false);
         Loaded += (_, _) => MyListItem_Loaded();
         ActualThemeVariantChanged += OnActualThemeVariantChanged;
+        ThemeRefreshWatcher.Watch(this, () => OnActualThemeVariantChanged(this, EventArgs.Empty));
     }
 
     #region 菜单与事件
