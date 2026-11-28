@@ -211,7 +211,7 @@ public partial class MyExtraTextButton : Grid
         PanColor.CornerRadius = radius;
     }
 
-    /// <summary>显示/隐藏过渡：显示时透明度与缩放一起回弹，隐藏时反向收起后折叠。</summary>
+    /// <summary>显示/隐藏过渡：仅控制透明度与缩放，保留页面设置的 IsVisible 及其绑定。</summary>
     private void _ApplyShow(bool value)
     {
         if (!Dispatcher.UIThread.CheckAccess())
@@ -224,8 +224,6 @@ public partial class MyExtraTextButton : Grid
 
         if (value)
         {
-            IsVisible = true;
-
             if (!ButtonAnimation.CanAnimate(this))
             {
                 Opacity = 1d;
@@ -259,7 +257,6 @@ public partial class MyExtraTextButton : Grid
         {
             Opacity = 0d;
             ButtonAnimation.SetScale(this, 0d);
-            IsVisible = false;
             return;
         }
 
@@ -271,14 +268,7 @@ public partial class MyExtraTextButton : Grid
                     this,
                     -ButtonAnimation.CurrentScale(this),
                     100,
-                    ease: new FluentEaseIn(EasePower.Weak)),
-                new ActionAnimation(
-                    () =>
-                    {
-                        Opacity = 0d;
-                        IsVisible = false;
-                    },
-                    true)
+                    ease: new FluentEaseIn(EasePower.Weak))
             },
             MainScaleKey);
     }
@@ -354,7 +344,7 @@ public partial class MyExtraTextButton : Grid
     /// <summary>执行点击语义；鼠标释放、键盘 Enter/Space 与自动化调用共用。</summary>
     public void PerformClick()
     {
-        if (!IsEnabled) return;
+        if (!Show || !IsEnabled) return;
         LogWrapper.Debug("[Control] 按下附加图标按钮：" + Text);
         Click?.Invoke(this, null!);
         CustomEventService.Raise(this);
