@@ -6,6 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using FluentValidation;
@@ -53,6 +54,13 @@ public class MyComboBox : ComboBox
     private double _realWidth = double.NaN;
     private Collection<IValidator<string>> _validateRules = [];
 
+    private const double DropDownWindowMargin = 4d;
+    private const double MinUsableDropDownHeight = 72d;
+
+    private double _dropDownConfiguredHeight = double.NaN;
+    private PlacementMode _dropDownConfiguredPlacement = PlacementMode.Bottom;
+    private bool _isDropDownBoundsAdjusted;
+
     public MyComboBox()
     {
         FontSize = 13d;
@@ -81,6 +89,7 @@ public class MyComboBox : ComboBox
         };
         GotFocus += (_, _) => RefreshColor();
         LostFocus += (_, _) => RefreshColor();
+        SizeChanged += (_, _) => UpdateDropDownBounds();
         Unloaded += (_, _) => StopAnimations();
     }
 
@@ -352,15 +361,63 @@ public class MyComboBox : ComboBox
         SetKeyboardNavigation(_lastInputFromKeyboard);
 
         AttachPopupOpacity();
+        UpdateDropDownBounds();
         RefreshColor();
     }
 
     private void MyComboBox_DropDownClosed(object? sender, EventArgs e)
     {
         Width = _realWidth;
+        RestoreDropDownBounds();
         SetKeyboardNavigation(false);
         DetachPopupOpacity();
         RefreshColor();
+    }
+
+    private void UpdateDropDownBounds()
+    {
+        if (_popup is null || !IsDropDownOpen)
+            return;
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel is null)
+            return;
+
+        var origin = this.TranslatePoint(new Point(0d, 0d), topLevel);
+        if (origin is null)
+            return;
+
+        if (!_isDropDownBoundsAdjusted)
+        {
+            _dropDownConfiguredHeight = _popup.MaxHeight;
+            _dropDownConfiguredPlacement = _popup.Placement;
+            _isDropDownBoundsAdjusted = true;
+        }
+
+        var desiredHeight = double.IsNaN(MaxDropDownHeight)
+            ? double.PositiveInfinity
+            : Math.Max(MaxDropDownHeight, 0d);
+
+        var availableBelow = topLevel.Bounds.Height - (origin.Value.Y + Bounds.Height) - DropDownWindowMargin;
+        var availableAbove = origin.Value.Y - DropDownWindowMargin;
+
+        var openUpwards = availableBelow < Math.Min(desiredHeight, MinUsableDropDownHeight) &&
+                          availableAbove > availableBelow;
+        var available = Math.Max(openUpwards ? availableAbove : availableBelow, 0d);
+
+        _popup.SetCurrentValue(Layoutable.MaxHeightProperty, Math.Min(desiredHeight, available));
+        _popup.SetCurrentValue(Popup.PlacementProperty,
+            openUpwards ? PlacementMode.Top : _dropDownConfiguredPlacement);
+    }
+
+    private void RestoreDropDownBounds()
+    {
+        if (_popup is null || !_isDropDownBoundsAdjusted)
+            return;
+
+        _isDropDownBoundsAdjusted = false;
+        _popup.SetCurrentValue(Layoutable.MaxHeightProperty, _dropDownConfiguredHeight);
+        _popup.SetCurrentValue(Popup.PlacementProperty, _dropDownConfiguredPlacement);
     }
 
     private void MyComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -487,6 +544,8 @@ public class MyComboBox : ComboBox
     {
         if (e.Property == OpacityProperty && _popupContent is not null && sender is Visual source)
             _popupContent.Opacity = source.Opacity;
+        else if (e.Property == TopLevel.ClientSizeProperty)
+            UpdateDropDownBounds();
     }
 
     private void EditableTextBox_GotFocus(object? sender, FocusChangedEventArgs e)
