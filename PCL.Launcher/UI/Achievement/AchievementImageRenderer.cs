@@ -24,16 +24,19 @@ public static class AchievementImageRenderer
 
     private readonly record struct TextLine(FormattedText Text, double Offset);
 
-    /// <summary>依次尝试本地 JAR、在线源、屏障占位，返回图标与「是否确认找不到」。</summary>
-    public static async Task<(Bitmap? Icon, bool NotFound)> LoadIconAsync(string itemId)
+    /// <summary>依次尝试本地 JAR、在线源，返回图标、「是否确认找不到」与「位图是否归调用方释放」。</summary>
+    public static async Task<(Bitmap? Icon, bool NotFound, bool OwnsIcon)> LoadIconAsync(string itemId)
     {
         var (idNamespace, path) = _SplitItemId(itemId);
 
+        // 原版贴图与在线源都只认 minecraft 命名空间；其他命名空间的物品直接标为找不到，
+        // 否则会拿路径部分去查原版数据，把别的物品图标显示出来
+        if (!string.Equals(idNamespace, "minecraft", StringComparison.OrdinalIgnoreCase))
+            return (null, true, false);
+
         // 实例解析要访问实例列表，留在调用线程；读 JAR 放后台，避免慢盘卡住界面
         string? jarPath = null;
-        if (!string.IsNullOrWhiteSpace(path)
-            && string.Equals(idNamespace, "minecraft", StringComparison.OrdinalIgnoreCase)
-            && !string.IsNullOrEmpty(GameFolders.mcFolderSelected))
+        if (!string.IsNullOrWhiteSpace(path) && !string.IsNullOrEmpty(GameFolders.mcFolderSelected))
         {
             var instance = InstanceList.McMcInstanceSelected;
             if (instance is not null) jarPath = _ResolveClientJarPath(instance);
@@ -45,14 +48,14 @@ public static class AchievementImageRenderer
             var itemPath = path;
             var localBytes = await Task.Run(() => _ReadJarEntryBytes(jar, itemPath));
             var local = localBytes is null ? null : _DecodeIcon(localBytes);
-            if (local is not null) return (local, false);
+            if (local is not null) return (local, false, true);
         }
 
         var online = await Task.Run(() => _TryLoadOnlineIcon(path));
-        if (online is not null) return (online, false);
+        if (online is not null) return (online, false, false);
 
         // 取不到图标时返回 null，由调用方画「禁止」占位，并提示物品 ID 可能不存在
-        return (null, true);
+        return (null, true, false);
     }
 
     /// <summary>把图标与文本渲染成成就卡片位图，调用方负责释放。</summary>
@@ -593,7 +596,18 @@ public static class AchievementImageRenderer
                 builder.Append(c);
 
         var name = builder.ToString().Trim().TrimEnd('.');
-        if (name.Length > 50) name = name[..50].TrimEnd();
+        if (name.Length > 50)
+        {
+            // 按 Rune 截断，避免切在代理项对中间留下半个 emoji
+            var trimmed = new StringBuilder(50);
+            foreach (var rune in name.EnumerateRunes())
+            {
+                if (trimmed.Length + rune.Utf16SequenceLength > 50) break;
+                trimmed.Append(rune.ToString());
+            }
+
+            name = trimmed.ToString().TrimEnd();
+        }
         return string.IsNullOrEmpty(name) ? "achievement" : name;
     }
 }

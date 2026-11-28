@@ -554,23 +554,32 @@ public partial class PageToolsTestViewModel : ViewModelBase
     private async Task<string> _RenderAchievementToFileAsync(string itemId, string title, string line1,
         string line2)
     {
-        var (icon, notFound) = await AchievementImageRenderer.LoadIconAsync(itemId);
+        var (icon, notFound, ownsIcon) = await AchievementImageRenderer.LoadIconAsync(itemId);
         if (notFound && !string.IsNullOrWhiteSpace(itemId))
             HintService.Show(Hints.Info(Lang.Text("Tools.Test.Achievement.IconNotFound", itemId)));
 
         var font = _ResolveAchievementFont();
-        return await Task.Run(() =>
+        try
         {
             // 物品 ID 为空时是「无图标」而非「找不到」，画占位立方体更合适
             var iconMissing = notFound && !string.IsNullOrWhiteSpace(itemId);
-            using var bitmap = AchievementImageRenderer.Render(icon, iconMissing, itemId, title, line1, line2, font);
+            return await Task.Run(() =>
+            {
+                using var bitmap =
+                    AchievementImageRenderer.Render(icon, iconMissing, itemId, title, line1, line2, font);
 
-            var folder = Path.Combine(Paths.Temp, "Achievement");
-            Directory.CreateDirectory(folder);
-            var file = Path.Combine(folder, $"preview_{DateTime.Now:yyyyMMddHHmmssfff}.png");
-            bitmap.Save(file);
-            return file;
-        });
+                var folder = Path.Combine(Paths.Temp, "Achievement");
+                Directory.CreateDirectory(folder);
+                var file = Path.Combine(folder, $"preview_{DateTime.Now:yyyyMMddHHmmssfff}.png");
+                bitmap.Save(file);
+                return file;
+            });
+        }
+        finally
+        {
+            // 本地 JAR 解出来的位图不归缓存所有，用完自己释放；在线图标由缓存复用，不能释放
+            if (ownsIcon) icon?.Dispose();
+        }
     }
 
     /// <summary>取成就渲染字体：按族名解析，失败则回退启动器默认字体。</summary>
