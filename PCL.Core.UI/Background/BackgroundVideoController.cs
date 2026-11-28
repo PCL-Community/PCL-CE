@@ -12,6 +12,16 @@ public sealed class BackgroundVideoController : IDisposable
 {
     private const int MaxVideoWidth = 1280;
     private const int MaxVideoHeight = 720;
+    private static readonly HashSet<string> SupportedYuvColorSpaces =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            "bt601",
+            "bt709",
+            "bt2020",
+            "bt2020nc",
+            "smpte170m",
+            "bt470bg"
+        };
     private static readonly TimeSpan SuspendDelay = TimeSpan.FromSeconds(30);
 
     private readonly ConfigObserver _ffmpegPathObserver;
@@ -542,10 +552,8 @@ public sealed class BackgroundVideoController : IDisposable
 
     internal static bool RequiresBgraOutput(VideoInfo? videoInfo)
     {
-        return string.Equals(
-            videoInfo?.ColorSpace,
-            "bt2020c",
-            StringComparison.OrdinalIgnoreCase);
+        return videoInfo?.ColorSpace is { } colorSpace
+            && !SupportedYuvColorSpaces.Contains(colorSpace);
     }
 
     internal static VideoInfo? NormalizeVideoInfoForOutput(VideoInfo? videoInfo)

@@ -25,21 +25,21 @@ public sealed class BackgroundVideoControllerTest
     }
 
     [TestMethod]
-    public void UsesBgraForBt2020ConstantLuminance()
+    public void UsesBgraForUnsupportedColorSpaces()
     {
-        var constantLuminance = new VideoInfo(
+        var info = new VideoInfo(
             new VideoSize(3840, 2160),
             24d,
             "yuv420p",
             "tv",
             "bt2020c");
-        var nonConstantLuminance = constantLuminance with
-        {
-            ColorSpace = "bt2020"
-        };
 
-        Assert.IsTrue(BackgroundVideoController.RequiresBgraOutput(constantLuminance));
-        Assert.IsFalse(BackgroundVideoController.RequiresBgraOutput(nonConstantLuminance));
+        Assert.IsTrue(
+            BackgroundVideoController.RequiresBgraOutput(
+                info with { ColorSpace = "smpte240m" }));
+        Assert.IsFalse(
+            BackgroundVideoController.RequiresBgraOutput(
+                info with { ColorSpace = "bt709" }));
     }
 
     [TestMethod]

@@ -157,7 +157,10 @@ public sealed partial class FfmpegVideoProbe(IExternalCommandRunner runner)
                 case "bt2020nc":
                     colorSpace = "bt2020";
                     break;
-                case "bt709" or "bt601" or "bt2020" or "bt2020c" or "smpte170m" or "bt470bg":
+                case "bt709" or "bt601" or "bt2020" or "bt2020c" or "smpte170m" or "bt470bg"
+                    or "smpte240m" or "bt470m" or "film" or "fcc" or "ycgco"
+                    or "smpte2085" or "chroma-derived-nc" or "chroma-derived-c"
+                    or "ictcp" or "jedec-p22" or "smpte428" or "smpte431" or "smpte432":
                     colorSpace = part;
                     break;
             }

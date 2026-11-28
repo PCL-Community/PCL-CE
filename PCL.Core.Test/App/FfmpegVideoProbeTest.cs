@@ -69,6 +69,16 @@ public sealed class FfmpegVideoProbeTest
     }
 
     [TestMethod]
+    public void PreservesUnsupportedYuvColorSpace()
+    {
+        var info = FfmpegVideoProbe.ParseInfo(
+            "Stream #0:0: Video: h264, yuv420p(tv, smpte240m, progressive), 1920x1080, 24 fps");
+
+        Assert.AreEqual("tv", info?.ColorRange);
+        Assert.AreEqual("smpte240m", info?.ColorSpace);
+    }
+
+    [TestMethod]
     public void UsesSampleAspectRatioForDisplaySize()
     {
         var size = FfmpegVideoProbe.Parse(
