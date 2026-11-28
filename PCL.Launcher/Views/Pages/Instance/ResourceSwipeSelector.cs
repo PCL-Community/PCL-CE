@@ -158,7 +158,7 @@ public sealed class ResourceSwipeSelector
         for (var i = newStart; i <= newEnd; i++)
         {
             RecordOriginal(i);
-            _setSelected(i, _targetChecked, false);
+            _setSelected(i, _targetChecked, true);
         }
 
         _refreshBar();
@@ -174,14 +174,14 @@ public sealed class ResourceSwipeSelector
     {
         if (!_originalStates.TryGetValue(index, out var original))
             return;
-        _setSelected(index, original, false);
+        _setSelected(index, original, true);
     }
 
     private void RestoreAll()
     {
         foreach (var (index, original) in _originalStates)
             if (index >= 0 && index < _count())
-                _setSelected(index, original, false);
+                _setSelected(index, original, true);
     }
 
     private void Complete()
