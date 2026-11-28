@@ -78,6 +78,9 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
     /// <summary>本次导航需要在入场前完成的内容初始化任务，不用于普通刷新。</summary>
     protected Task? PageEnterTask { get; set; }
 
+    /// <summary>等待初始化时隐藏的内容区域；为空时隐藏整个 Child。</summary>
+    protected Control? PageEnterContent { get; set; }
+
     public virtual void OnNavigatedTo(PageParameter? parameter)
     {
     }
@@ -195,12 +198,15 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
     {
         if (PageEnterTask is { IsCompleted: false } task)
         {
-            Child?.IsVisible = false;
+            (PageEnterContent ?? Child)?.IsVisible = false;
+            if (PageEnterContent is not null)
+                Child?.IsVisible = true;
             _ = EnterAfterContentReadyAsync(task);
             return;
         }
 
         PageEnterTask = null;
+        PageEnterContent?.IsVisible = true;
         if (LauncherCommon.ModeDebug)
             LauncherCommon.Log("[UI] 已触发 PageOnEnter");
         PageEnter?.Invoke();
@@ -290,6 +296,7 @@ public class MyPageRight : Decorator, IPageView, IPageRightContainer
         if (!ReferenceEquals(PageEnterTask, task))
             return;
         PageOnEnter();
+        PageRouter.FocusFirst(this);
     }
 
     public event PageEnterEventHandler? PageEnter;

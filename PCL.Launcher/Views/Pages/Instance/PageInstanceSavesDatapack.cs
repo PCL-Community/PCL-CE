@@ -29,6 +29,7 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         InitializeComponent();
         DataContext = ViewModel;
         PanScroll = PanBack;
+        PageEnterContent = PanAllBack;
         ViewModel.SetPage(this);
         BtnFilterAll.Bind(
             MyRadioButton.TextProperty,
@@ -199,6 +200,9 @@ public partial class PageInstanceSavesDatapack : MyPageRight, IRefreshable, ICom
         ViewModel.ResetListViewState();
         SearchBox.Text = string.Empty;
         PanBack.ScrollToHome();
+        PanLoad.Opacity = 1d;
+        PanLoad.RenderTransform = null;
+        PanLoad.IsHitTestVisible = true;
         PageEnterTask = ReloadAsync();
     }
 
