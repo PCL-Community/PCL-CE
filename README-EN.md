@@ -42,7 +42,7 @@ Everyone is welcome to try it out!
 |---|---|---|---|
 | Windows 11 24H2 (E) / 25H2 or later | x64、ARM64 | ✅ Fully supported | [.NET 10 Runtime](https://get.dot.net/10) |
 | Windows 10 21H2 / 22H2 | x64、ARM64 | ✅ Fully supported | [.NET 10 Runtime](https://get.dot.net/10) |
-| Windows Server 2022 (20349) or later | x64、ARM64 | ✅ Fully supported | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows Server 2022 (20348) or later | x64、ARM64 | ✅ Fully supported | [.NET 10 Runtime](https://get.dot.net/10) |
 | Windows 10 1607 (E) / 1809 (E) | x64 | ⚠️ Limited Support | [.NET 10 Runtime](https://get.dot.net/10) |
 | Other Windows 11 / 10 / Windows Server、Windows 8.x、7 or earlier | / | ❌ Not supported | / |
 

@@ -24,7 +24,8 @@
     <sys:String x:Key="Application.EnvironmentWarning.System32Bit">- 目前系統為 32 位元，不受 PCL CE 和新版 Minecraft 支援，強烈建議重灌為 64 位元系統後再進行遊戲</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.TempFolder">- PCL CE 正在暫存資料夾執行，請將 PCL CE 從壓縮檔中解壓縮後再使用，否則可能導致遊戲存檔或設定遺失</sys:String>
     <sys:String x:Key="Application.EnvironmentWarning.Title">環境警告</sys:String>
-    <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- Windows 版本低於建議需求；建議使用 Windows 10 1809 或更新版本，並考慮升級 Windows</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.WindowsVersion">- Windows 版本低於建議需求；建議使用 Windows 10 21H2 或更新版本，並考慮升級 Windows</sys:String>
+    <sys:String x:Key="Application.EnvironmentWarning.MacOsVersion">- macOS 版本低於建議需求；建議使用 macOS 15 Sequoia 或更新版本，並考慮升級 macOS</sys:String>
     <sys:String x:Key="Application.InitializationError.Path">PCL CE 所在路徑：{0}</sys:String>
     <sys:String x:Key="Application.InitializationError.PathUnavailable">取得失敗</sys:String>
     <sys:String x:Key="Application.InitializationError.Title">PCL CE 初始化錯誤</sys:String>

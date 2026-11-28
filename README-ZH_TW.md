@@ -42,7 +42,7 @@ PCL CE 是基於 PCL 開放原始碼二次開發的社群版本，包括了主�
 |---|---|---|---|
 | Windows 11 24H2 (E) / 25H2 或以上 | x64、ARM64 | ✅ 完整支援 | [.NET 10 Runtime](https://get.dot.net/10) |
 | Windows 10 21H2 / 22H2 | x64、ARM64 | ✅ 完整支援 | [.NET 10 Runtime](https://get.dot.net/10) |
-| Windows Server 2022 (20349) 或以上 | x64、ARM64 | ✅ 完整支援 | [.NET 10 Runtime](https://get.dot.net/10) |
+| Windows Server 2022 (20348) 或以上 | x64、ARM64 | ✅ 完整支援 | [.NET 10 Runtime](https://get.dot.net/10) |
 | Windows 10 1607 (E) / 1809 (E) | x64 | ⚠️ 有限支援 | [.NET 10 Runtime](https://get.dot.net/10) |
 | 其他 Windows 11 / 10 / Windows Server、Windows 8.x、7 或更低版本 | / | ❌ 不支援 | / |
 
