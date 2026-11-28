@@ -21,6 +21,5 @@ public enum EventType
     ModifySetting,
     WriteSetting,
     ModifyVariable,
-    WriteVariable,
-    OpenHelp
+    WriteVariable
 }

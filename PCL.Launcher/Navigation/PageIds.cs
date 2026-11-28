@@ -22,7 +22,6 @@ public static class PageIds
     public static readonly PageId TaskManager = new("TaskManager");
     public static readonly PageId InstanceSetup = new("InstanceSetup");
     public static readonly PageId CompDetail = new("CompDetail");
-    public static readonly PageId HelpDetail = new("HelpDetail");
     public static readonly PageId GameLog = new("GameLog");
     public static readonly PageId VersionSaves = new("VersionSaves");
 }

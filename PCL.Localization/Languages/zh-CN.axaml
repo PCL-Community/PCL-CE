@@ -838,8 +838,6 @@
     <sys:String x:Key="Event.Safety.ContinueAlways">继续且今后不再要求确认</sys:String>
     <sys:String x:Key="Event.Safety.DangerousSettingBlocked">自定义主页不能写入高危设置：{0}</sys:String>
     <sys:String x:Key="Event.Safety.Title">执行确认</sys:String>
-    <sys:String x:Key="Event.Sanitize.UnknownTypeHint">[{0}] 是无法解析的 EventType，已从主页中移除。</sys:String>
-    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">[{0}] 是不受支持的原版 PCL EventType，已从主页中移除。</sys:String>
     <sys:String x:Key="Event.Setting.Written">已写入设置：{0} → {1}</sys:String>
     <sys:String x:Key="Event.Variable.Written">已写入变量：{0} → {1}</sys:String>
 
@@ -1701,11 +1699,8 @@
     <sys:String x:Key="Launch.Homepage.LoadFailed.Retry">重试</sys:String>
     <sys:String x:Key="Launch.Homepage.LoadFailed.Title">加载主页界面失败</sys:String>
     <sys:String x:Key="Launch.Homepage.Loading">正在加载主页……</sys:String>
-    <sys:String x:Key="Launch.Homepage.InvalidXaml">主页内容不是有效的 XAML 或 AXAML。</sys:String>
-    <sys:String x:Key="Launch.Homepage.WpfMigrationToast">当前正在使用 WPF 自定义主页，显示可能存在问题。</sys:String>
     <sys:String x:Key="Launch.Homepage.News.Loading">加载中……</sys:String>
     <sys:String x:Key="Launch.Homepage.News.ViewDetail">查看详情</sys:String>
-    <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">回声洞 因为只有空壳因此已被移除，请前往设置选择其他预设主页</sys:String>
     <sys:String x:Key="Launch.Homepage.SlowWarning">主页加载过于缓慢（花费了 {0} 秒），请向主页作者反馈此问题，或暂时停止使用该主页</sys:String>
     <sys:String x:Key="Launch.Homepage.Task.Download">下载主页</sys:String>
 
@@ -3278,11 +3273,10 @@
     <sys:String x:Key="Setup.Ui.Homepage.GoToMarket">前往主页市场</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.HintReferToModSetup">内容见 ModSetup</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.LocalFile">读取本地文件</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.LocalFile.Hint">从 PCL 文件夹下的 Custom.axaml 或 Custom.xaml 读取主页内容。&#xA;你可以手动编辑该文件，向主页添加文本、图片、常用网站、快捷启动等功能。</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.LocalFile.Hint">从 PCL 文件夹下的 Custom.axaml 读取主页内容。&#xA;你可以手动编辑该文件，向主页添加文本、图片、常用网站、快捷启动等功能。</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate">联网更新</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate.Hint">从指定网址联网获取主页内容。服主也可以用于动态更新服务器公告。&#xA;如果你制作了稳定运行的联网主页，可以点击这条提示投稿，若合格即可加入预设！</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetWarning">请谨慎使用陌生人提供的主页，恶意代码可能会造成损害！</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.MigrationWarning">PCL CE 已全面迁移至 Avalonia UI，请优先使用 AXAML 格式的主页文件。旧版 WPF XAML 自定义主页的支持有限，不建议继续使用，同时也建议主页作者尽快改用新的 AXAML 格式。</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.PresetLabel">主页预设</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh">刷新主页</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh.Success">已刷新主页！</sys:String>
@@ -3292,25 +3286,8 @@
     <!-- Setup.Ui.Homepage.Preset -->
 
     <sys:String x:Key="Setup.Ui.Homepage.Preset">预设</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.Bangumi">[WPF] Bangumi 番剧主页（作者：wzyaeu）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">[WPF] 每日整合包推荐（作者：wkea）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">回声洞 (已移除)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">[WPF] PCL GitHub 仪表盘（作者：Deep-Dark-Forest）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">杂志主页（作者：正源 Neclyon）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">[WPF] Minecraft 新闻（作者：最亮的信标）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft 官方信息流</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">[WPF] Minecraft 皮肤推荐（作者：wkea）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.McUpdateSummary">[WPF] Minecraft 更新摘要（作者：pynickle，部分由 AI 生成）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.MinecraftKnowledge">[WPF] Minecraft 芝士站（作者：awaEric233）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.ModpackRecommendation">[WPF] 整合包推荐引擎（作者：CHMYGZ）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.NewsToday">[WPF] 今日新闻热点（作者：EYicheng）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenBmclapi">[WPF] OpenBMCLAPI 仪表盘 Lite（作者：Silverteal、Mxmilu666）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenMcim">OpenMCIM 仪表盘（作者：SALTWOOD）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">[WPF] PCL CE 公告栏</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclManual">[WPF] PCL 新功能说明书（作者：WForst-Breeze）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclMarket">PCL 主页市场（作者：凌云）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclNews">PCL 新闻速报（作者：Joker2184）</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.SimpleHomepage">简单主页（作者：MFn233）</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Trivia">你知道吗？</sys:String>
 
     <!-- Setup.Ui.Logo -->

@@ -6,6 +6,7 @@ using PCL.Core.UI.Dialogs;
 using PCL.Core.UI.Theme;
 using PCL.Core.UI.Theming;
 using PCL.Core.ViewModel;
+using PCL.Views.Pages.Homepage;
 
 namespace PCL;
 
@@ -192,7 +193,7 @@ public partial class PageSetupUIViewModel : ViewModelBase
     partial void OnCustomPresetSelectedIndexChanged(int value)
     {
         if (!_reloading && value >= 0)
-            Config.Preference.Homepage.SelectedPreset = value;
+            Config.Preference.Homepage.SelectedPreset = ToPresetIndex(value);
     }
 
     partial void OnLogoTextChanged(string value)
@@ -250,10 +251,14 @@ public partial class PageSetupUIViewModel : ViewModelBase
                 8);
             LogoText = Config.Preference.WindowTitleCustomText;
             CustomNetText = Config.Preference.Homepage.CustomUrl;
-            CustomPresetSelectedIndex = Math.Clamp(
-                Config.Preference.Homepage.SelectedPreset,
-                0,
-                15);
+            var presetIndex = Config.Preference.Homepage.SelectedPreset;
+            if (HomepagePresetTable.Find(presetIndex) is null)
+            {
+                presetIndex = HomepagePresetTable.TriviaIndex;
+                Config.Preference.Homepage.SelectedPreset = presetIndex;
+            }
+
+            CustomPresetSelectedIndex = ToVisiblePresetIndex(presetIndex);
 
             MusicVolume = Config.Preference.Music.Volume;
         }
@@ -267,6 +272,26 @@ public partial class PageSetupUIViewModel : ViewModelBase
         RefreshLightPalette();
         RefreshDarkPalette();
         RefreshVisibleMode();
+    }
+
+    private static int ToVisiblePresetIndex(int presetIndex)
+    {
+        return presetIndex switch
+        {
+            HomepagePresetTable.MagazineIndex => 1,
+            HomepagePresetTable.NewsFeedIndex => 2,
+            _ => 0
+        };
+    }
+
+    private static int ToPresetIndex(int visibleIndex)
+    {
+        return visibleIndex switch
+        {
+            1 => HomepagePresetTable.MagazineIndex,
+            2 => HomepagePresetTable.NewsFeedIndex,
+            _ => HomepagePresetTable.TriviaIndex
+        };
     }
 
     private ColorTheme GetThemeAt(int index)

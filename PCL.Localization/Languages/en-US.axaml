@@ -838,8 +838,6 @@
     <sys:String x:Key="Event.Safety.ContinueAlways">Continue and do not ask again</sys:String>
     <sys:String x:Key="Event.Safety.DangerousSettingBlocked">A custom homepage cannot write the security-sensitive setting: {0}</sys:String>
     <sys:String x:Key="Event.Safety.Title">Confirm execution</sys:String>
-    <sys:String x:Key="Event.Sanitize.UnknownTypeHint">[{0}] is an unrecognized EventType and has been removed from the homepage.</sys:String>
-    <sys:String x:Key="Event.Sanitize.UnsupportedTypeHint">[{0}] is an unsupported original PCL EventType and has been removed from the homepage.</sys:String>
     <sys:String x:Key="Event.Setting.Written">Setting written: {0} → {1}</sys:String>
     <sys:String x:Key="Event.Variable.Written">Variable written: {0} → {1}</sys:String>
 
@@ -1701,11 +1699,8 @@
     <sys:String x:Key="Launch.Homepage.LoadFailed.Retry">Retry</sys:String>
     <sys:String x:Key="Launch.Homepage.LoadFailed.Title">Failed to load homepage</sys:String>
     <sys:String x:Key="Launch.Homepage.Loading">Loading homepage...</sys:String>
-    <sys:String x:Key="Launch.Homepage.InvalidXaml">The homepage content is not valid XAML or AXAML.</sys:String>
-    <sys:String x:Key="Launch.Homepage.WpfMigrationToast">You are using a WPF custom homepage, which may have display issues.</sys:String>
     <sys:String x:Key="Launch.Homepage.News.Loading">Loading...</sys:String>
     <sys:String x:Key="Launch.Homepage.News.ViewDetail">View details</sys:String>
-    <sys:String x:Key="Launch.Homepage.Preset.EchoCave.Removed">The Echo Cave preset has been removed as it only had a shell. Please go to Settings and select another homepage preset.</sys:String>
     <sys:String x:Key="Launch.Homepage.SlowWarning">The homepage is loading too slowly ({0} seconds). Please report this issue to the homepage author, or temporarily stop using this homepage.</sys:String>
     <sys:String x:Key="Launch.Homepage.Task.Download">Download homepage</sys:String>
 
@@ -3278,11 +3273,10 @@
     <sys:String x:Key="Setup.Ui.Homepage.GoToMarket">Homepage Market</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.HintReferToModSetup">See ModSetup</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.LocalFile">Local</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.LocalFile.Hint">Read the homepage from Custom.axaml or Custom.xaml in the PCL folder.&#xA;You can edit this file to add text, images, frequently used websites, quick launch actions, and more to the homepage.</sys:String>
+    <sys:String x:Key="Setup.Ui.Homepage.LocalFile.Hint">Read the homepage from Custom.axaml in the PCL folder.&#xA;You can edit this file to add text, images, frequently used websites, quick launch actions, and more to the homepage.</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate">Online</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetUpdate.Hint">Get homepage content from the specified URL. Server owners can also use it to update server announcements dynamically.&#xA;If you have created a stable online homepage, click this hint to share it. Approved submissions may be added to the presets!</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.NetWarning">Please exercise caution when using homepages provided by strangers. Malicious homepages may cause harm!</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.MigrationWarning">PCL CE has fully migrated to Avalonia UI. Please prefer AXAML homepage files. Legacy WPF XAML custom homepages have limited support and are not recommended. Homepage authors are also encouraged to switch to the new AXAML format.</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.PresetLabel">Homepage presets</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh">Refresh</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Refresh.Success">Homepage refreshed!</sys:String>
@@ -3292,25 +3286,8 @@
     <!-- Setup.Ui.Homepage.Preset -->
 
     <sys:String x:Key="Setup.Ui.Homepage.Preset">Preset</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.Bangumi">[WPF] Bangumi Anime (Author: wzyaeu)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.DailyModpack">[WPF] Daily Modpack Recommendation (Author: wkea)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.EchoCave">Echo Cave (removed)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.GitHub">[WPF] PCL GitHub Dashboard (Author: Deep-Dark-Forest)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Magazine">Magazine Homepage (Author: Neclyon)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.McNews">[WPF] Minecraft News (Author: Nattiden)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.McOfficialFeed">Minecraft Official Feed</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.McSkin">[WPF] Minecraft Skin Recommendation (Author: wkea)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.McUpdateSummary">[WPF] Minecraft Update Summary (Author: pynickle, partially AI-generated)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.MinecraftKnowledge">[WPF] Minecraft Knowledge (Author: awaEric233)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.ModpackRecommendation">[WPF] Modpack Recommendation Engine (Author: CHMYGZ)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.NewsToday">[WPF] News Today (Author: EYicheng)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenBmclapi">[WPF] OpenBMCLAPI Dashboard Lite (Authors: Silverteal, Mxmilu666)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.OpenMcim">OpenMCIM Dashboard (Author: SALTWOOD)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclAnnouncement">[WPF] PCL CE Announcements</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclManual">[WPF] PCL New Feature Manual (Author: WForst-Breeze)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclMarket">PCL Homepage Market (Author: MoYuan-CN)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.PclNews">PCL News Bulletin (Author: Joker2184)</sys:String>
-    <sys:String x:Key="Setup.Ui.Homepage.Preset.SimpleHomepage">Simple Homepage (Author: MFn233)</sys:String>
     <sys:String x:Key="Setup.Ui.Homepage.Preset.Trivia">Trivia</sys:String>
 
     <!-- Setup.Ui.Logo -->

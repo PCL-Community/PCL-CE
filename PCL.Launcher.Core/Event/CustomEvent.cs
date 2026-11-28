@@ -1,18 +1,14 @@
-﻿using System.Collections.Concurrent;
-using PCL.Core.App;
+﻿using PCL.Core.App;
 using PCL.Core.App.Configuration;
 using PCL.Core.App.Localization;
 using PCL.Core.IO;
 using PCL.Core.Platform;
 using PCL.Core.UI.Dialogs;
-using PCL.Network;
 
 namespace PCL;
 
 public class CustomEvent
 {
-    private static readonly ConcurrentDictionary<string, byte> HelpOpening = new();
-
     /// <summary>禁止自定义主页写入的高危设置黑名单</summary>
     private static readonly HashSet<string> SecuritySensitiveSettingKeys =
     [
@@ -42,8 +38,7 @@ public class CustomEvent
         [EventType.ModifySetting] = _WriteSetting,
         [EventType.WriteSetting] = _WriteSetting,
         [EventType.ModifyVariable] = _WriteVariable,
-        [EventType.WriteVariable] = _WriteVariable,
-        [EventType.OpenHelp] = _OpenHelp
+        [EventType.WriteVariable] = _WriteVariable
     };
 
     public CustomEvent()
@@ -338,114 +333,8 @@ public class CustomEvent
                 NotificationType.Success);
     }
 
-    /// <summary>打开帮助或自定义主页页面</summary>
-    private static void _OpenHelp(string arg, EventType type)
-    {
-        var args = SplitArgs(arg);
-        if (!Uri.TryCreate(args[0], UriKind.Absolute, out var uri)
-            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
-        {
-            LauncherUi.Interaction?.OpenWebsite("https://docs.pclc.cc/ce");
-            return;
-        }
-
-        if (!HelpOpening.TryAdd(args[0], 0)) return;
-
-        try
-        {
-            LauncherCommon.RunInNewThread(() =>
-            {
-                try
-                {
-                    var actualPaths = GetAbsoluteUrls(args[0], type);
-                    var location = actualPaths[0];
-                    EventUi.OpenHelp(location);
-                }
-                catch (Exception ex)
-                {
-                    LauncherCommon.Log(
-                        ex,
-                        Lang.Text("Event.Error.ExecutionFailed", type, arg),
-                        LauncherLogLevel.Msgbox,
-                        userSummary: Lang.Text("Event.Error.ExecutionFailed", type, arg));
-                }
-                finally
-                {
-                    HelpOpening.TryRemove(args[0], out _);
-                }
-            });
-        }
-        catch
-        {
-            HelpOpening.TryRemove(args[0], out _);
-            throw;
-        }
-    }
-
     public static string[] GetAbsoluteUrls(string relativeUrl, EventType type)
     {
-        if (type == EventType.OpenHelp
-            && Uri.TryCreate(relativeUrl, UriKind.Absolute, out var remoteUri)
-            && (remoteUri.Scheme == Uri.UriSchemeHttp || remoteUri.Scheme == Uri.UriSchemeHttps))
-        {
-            if (LauncherCommon.RunInUi())
-                throw new Exception("能打开联网帮助页面的 MyListItem 必须手动设置 Title、Info 属性！");
-
-            // 获取文件名
-            string rawFileName;
-            try
-            {
-                rawFileName = Uri.UnescapeDataString(Path.GetFileName(remoteUri.AbsolutePath));
-                if (!Path
-                        .GetExtension(rawFileName)
-                        .Equals(".json", StringComparison.OrdinalIgnoreCase))
-                    throw new Exception("未指向 .json 后缀的文件");
-                if (rawFileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-                    throw new Exception("文件名包含非法字符");
-            }
-            catch (Exception e)
-            {
-                throw new Exception(
-                    "联网帮助页面须指向一个帮助 JSON 文件，并在同路径下包含相应 XAML 文件！\n"
-                    + "例如：\n"
-                    + " - https://www.baidu.com/test.json（填写这个路径）\n"
-                    + " - https://www.baidu.com/test.xaml（同时也需要包含这个文件）",
-                    e);
-            }
-
-            // 下载文件
-            var tempFolder = LauncherCommon.GetTempFolder("Event");
-            var jsonPath = Path.Combine(tempFolder, rawFileName);
-            var xamlPath = Path.ChangeExtension(jsonPath, ".xaml");
-            var xamlUri = new UriBuilder(remoteUri)
-            {
-                Path = Path.ChangeExtension(remoteUri.AbsolutePath, ".xaml").Replace('\\', '/')
-            }.Uri.AbsoluteUri;
-            LauncherCommon.Log($"[Control] 转换网络帮助资源：{relativeUrl} -> {jsonPath}");
-            try
-            {
-                Task
-                    .WhenAll(
-                        NetFacade.NetDownloadByClient(remoteUri.AbsoluteUri, jsonPath),
-                        NetFacade.NetDownloadByClient(xamlUri, xamlPath)
-                    )
-                    .GetAwaiter()
-                    .GetResult();
-            }
-            catch (Exception e)
-            {
-                throw new Exception(
-                    "下载指定的文件失败！\n"
-                    + "注意，联网帮助页面须指向一个帮助 JSON 文件，并在同路径下包含相应 XAML 文件！\n"
-                    + "例如：\n"
-                    + " - https://www.baidu.com/test.json（填写这个路径）\n"
-                    + " - https://www.baidu.com/test.xaml（同时也需要包含这个文件）",
-                    e);
-            }
-
-            relativeUrl = jsonPath;
-        }
-
         // 确认路径
         relativeUrl = relativeUrl.Replace('/', Path.DirectorySeparatorChar);
         var pclDir = Paths.Data;

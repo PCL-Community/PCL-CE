@@ -6,8 +6,8 @@ using PCL.Network;
 namespace PCL.Views.Pages.Homepage;
 
 /// <summary>
-/// 主页内容的解析结果：描述当前配置下主页应当展示什么，以及内容来自哪里。 运行时 XAML 主页在 <see cref="Xaml" /> 中携带原始内容，由 WPF
-/// 兼容渲染器 或 AXAML 运行时加载器转换；联网主页在没有缓存时返回 <see cref="IsLoading" />， 由界面层清空旧页并等待后台下载。
+/// 主页内容的解析结果：描述当前配置下主页应当展示什么，以及内容来自哪里。 AXAML 主页在 <see cref="Axaml" /> 中携带原始内容， 由
+/// AXAML 运行时加载器转换；联网主页在没有缓存时返回 <see cref="IsLoading" />，由界面层清空旧页并等待后台下载。
 /// </summary>
 public sealed record HomepageContent
 {
@@ -19,8 +19,8 @@ public sealed record HomepageContent
 
     public string? SourceText { get; init; }
 
-    /// <summary>运行时 XAML 内容；仅 <see cref="HomepageSourceKind.CustomXaml" /> 使用。</summary>
-    public string? Xaml { get; init; }
+    /// <summary>AXAML 内容；仅 <see cref="HomepageSourceKind.CustomAxaml" /> 使用。</summary>
+    public string? Axaml { get; init; }
 
     public long ContentLength { get; init; }
 
@@ -32,13 +32,13 @@ public sealed record HomepageContent
 
 /// <summary>
 /// 主页来源解析：读取 <c>Preference.Homepage</c> 配置，把主页来源解释为 <see cref="HomepageContent" />。
-/// 联网来源带本地缓存与版本校验，缓存地址为临时目录下的 <c>Cache/Custom.xaml</c>， 下载后的地址与版本写入
+/// 联网来源带本地缓存与版本校验，缓存地址为临时目录下的 <c>Cache/Custom.axaml</c>， 下载后的地址与版本写入
 /// <c>States.UI.SavedHomepageUrl</c> / <c>SavedHomepageVersion</c>。
 /// 有缓存时先返回缓存并在后台检查新版本；没有缓存时返回加载态并后台下载。 后台刷新失败时会保留缓存/旧页，只有全新下载且没有可回退内容时才显示错误。
 /// </summary>
 public static class HomepageSource
 {
-    private const string CustomFileCacheName = "Custom.xaml";
+    private const string CustomFileCacheName = "Custom.axaml";
 
     private const int NetworkTimeout = 10 * 60 * 1000;
 
@@ -48,10 +48,7 @@ public static class HomepageSource
 
     public static string CachePath => Path.Combine(Paths.Temp, "Cache", CustomFileCacheName);
 
-    /// <summary>
-    /// 重置主页的缓存状态。与 WPF 一致，这里不删除 <see cref="CachePath" />， 只清除记住的
-    /// URL/版本；下次联网刷新会重新下载，失败时仍保留旧缓存文件。
-    /// </summary>
+    /// <summary>重置主页的缓存状态。这里不删除 <see cref="CachePath" />，只清除记住的 URL/版本； 下次联网刷新会重新下载，失败时仍保留旧缓存文件。</summary>
     public static void ClearCache()
     {
         States.UI.SavedHomepageUrl = "";
@@ -102,14 +99,12 @@ public static class HomepageSource
 
     private static HomepageContent ResolveLocalFile()
     {
-        var xamlPath = Path.Combine(Paths.Data, "Custom.xaml");
-        var axamlPath = Path.Combine(Paths.Data, "Custom.axaml");
-        var path = File.Exists(axamlPath) ? axamlPath : xamlPath;
+        var path = Path.Combine(Paths.Data, "Custom.axaml");
         LogWrapper.Info("Launch", "主页自定义数据来源：本地文件");
         if (!File.Exists(path))
             return new HomepageContent
             {
-                Kind = HomepageSourceKind.CustomXaml,
+                Kind = HomepageSourceKind.CustomAxaml,
                 SourceText = path,
                 ErrorMessage = Lang.Text("PageLaunch.Homepage.Custom.Error.Missing")
             };
@@ -120,7 +115,7 @@ public static class HomepageSource
             if (content.Length > MaxContentLength)
                 return new HomepageContent
                 {
-                    Kind = HomepageSourceKind.CustomXaml,
+                    Kind = HomepageSourceKind.CustomAxaml,
                     SourceText = path,
                     ErrorMessage = Lang.Text(
                         "Launch.Homepage.LoadFailed.Message",
@@ -129,16 +124,16 @@ public static class HomepageSource
             if (string.IsNullOrWhiteSpace(content))
                 return new HomepageContent
                 {
-                    Kind = HomepageSourceKind.CustomXaml,
+                    Kind = HomepageSourceKind.CustomAxaml,
                     SourceText = path,
                     ErrorMessage = Lang.Text("Launch.Homepage.LoadFailed.Message", "主页文件为空")
                 };
 
             return new HomepageContent
             {
-                Kind = HomepageSourceKind.CustomXaml,
+                Kind = HomepageSourceKind.CustomAxaml,
                 SourceText = path,
-                Xaml = content,
+                Axaml = content,
                 ContentLength = content.Length
             };
         }
@@ -147,7 +142,7 @@ public static class HomepageSource
             LogWrapper.Error(ex, "Launch", "读取本地自定义主页失败");
             return new HomepageContent
             {
-                Kind = HomepageSourceKind.CustomXaml,
+                Kind = HomepageSourceKind.CustomAxaml,
                 SourceText = path,
                 ErrorMessage = Lang.Text("Launch.Homepage.Error.ExternalFile", path)
             };
@@ -176,11 +171,6 @@ public static class HomepageSource
                 Kind = HomepageSourceKind.Trivia,
                 TitleKey = preset.NameKey,
                 TriviaText = HomepageHints.GetRandomHint(raw: true)
-            },
-            HomepageSourceKind.Removed => new HomepageContent
-            {
-                Kind = HomepageSourceKind.Removed,
-                TitleKey = preset.NameKey
             },
             HomepageSourceKind.NewsFeed => new HomepageContent
             {
@@ -243,9 +233,9 @@ public static class HomepageSource
                     StartBackgroundRefresh(url, onBackgroundUpdated, false);
                     return new HomepageContent
                     {
-                        Kind = HomepageSourceKind.CustomXaml,
+                        Kind = HomepageSourceKind.CustomAxaml,
                         SourceText = url,
-                        Xaml = cached,
+                        Axaml = cached,
                         ContentLength = cached.Length
                     };
                 }
@@ -260,7 +250,7 @@ public static class HomepageSource
         StartBackgroundRefresh(url, onBackgroundUpdated, true);
         return new HomepageContent
         {
-            Kind = HomepageSourceKind.CustomXaml,
+            Kind = HomepageSourceKind.CustomAxaml,
             SourceText = url,
             IsLoading = true
         };
@@ -319,9 +309,9 @@ public static class HomepageSource
                     $"[Page] 已联网下载主页，内容长度：{content.Length}，来源：{url}");
                 updated = new HomepageContent
                 {
-                    Kind = HomepageSourceKind.CustomXaml,
+                    Kind = HomepageSourceKind.CustomAxaml,
                     SourceText = url,
-                    Xaml = content,
+                    Axaml = content,
                     ContentLength = content.Length
                 };
             }
@@ -330,7 +320,7 @@ public static class HomepageSource
                 LogWrapper.Debug(ex, "Launch", $"获取联网主页失败：{url}");
                 updated = new HomepageContent
                 {
-                    Kind = HomepageSourceKind.CustomXaml,
+                    Kind = HomepageSourceKind.CustomAxaml,
                     SourceText = url,
                     ErrorMessage = ex is InvalidDataException
                         ? Lang.Text("Launch.Homepage.LoadFailed.Message", ex.Message)
@@ -344,6 +334,8 @@ public static class HomepageSource
 
     private static string VersionAddress(string url)
     {
+        if (url.Contains(".axaml", StringComparison.OrdinalIgnoreCase))
+            return url.Replace(".axaml", ".axaml.ini", StringComparison.OrdinalIgnoreCase);
         if (url.Contains(".xaml", StringComparison.OrdinalIgnoreCase))
             return url.Replace(".xaml", ".xaml.ini", StringComparison.OrdinalIgnoreCase);
 

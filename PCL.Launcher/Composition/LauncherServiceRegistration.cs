@@ -6,7 +6,6 @@ using PCL.Navigation;
 using PCL.Platform;
 using PCL.UI.Controls;
 using PCL.UI.SystemIntegration;
-using PCL.Views.Pages;
 using PCL.Views.Pages.Download;
 using PCL.Views.Pages.Instance;
 using PCL.Views.Pages.Launch;
@@ -75,7 +74,6 @@ public static class LauncherServiceRegistration
         services.AddTransient<PageSpeedRight>();
         services.AddTransient<PageLogLeft>();
         services.AddTransient<PageLogRight>();
-        services.AddTransient<PageHelpDetail>();
         services.AddTransient<PageDownloadCompDetail>();
         services.AddTransient<PageSetupLeftViewModel>();
         services.AddTransient<PageSetupJavaViewModel>();

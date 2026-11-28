@@ -60,12 +60,6 @@ public static class EventTypeMapper
         },
         {
             "写入变量", "WriteVariable"
-        },
-        {
-            "打开帮助", "OpenHelp"
-        },
-        {
-            "刷新帮助", "OpenHelp"
         }
     };
 

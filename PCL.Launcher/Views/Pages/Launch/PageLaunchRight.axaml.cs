@@ -17,14 +17,13 @@ using PCL.UI.Controls;
 using PCL.UI.Xaml;
 using PCL.Views.Pages.Homepage;
 using PCL.Views.Shell;
-using PCL.Xaml;
 
 namespace PCL.Views.Pages.Launch;
 
 /// <summary>
 /// 启动页右栏：按 <c>Preference.Homepage</c> 配置构建主页内容，另带社区版提示与启动日志卡片。
-/// 主页来源分为空白、内置“你知道吗”、Minecraft 信息流与运行时 XAML 主页四类； 运行时内容支持旧 WPF XAML 与 AXAML
-/// 两种格式，统一走预设、本地文件、URL、 缓存与 CustomLive.json 实时补丁流程。
+/// 主页来源分为空白、内置“你知道吗”、Minecraft 信息流与 AXAML 主页四类；AXAML 内容统一走预设、本地文件、URL、 缓存与 CustomLive.json
+/// 实时补丁流程。
 /// </summary>
 public partial class PageLaunchRight : MyPageRight, IRefreshable
 {
@@ -57,7 +56,6 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
     private DispatcherTimer? _homepageLivePatchTimer;
     private FileSystemWatcher? _homepageLiveWatcher;
     private bool _initialContentPending;
-    private string? _lastWpfToastSource;
     private HomepageContent? _pendingBackgroundContent;
     private int _refreshVersion;
 
@@ -199,7 +197,7 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
 
                     if (content.IsLoading)
                     {
-                        // 新下载没有可复用的缓存：按 WPF 行为先清空旧页。
+                        // 新下载没有可复用的缓存：先清空旧页。
                         _panCustom.Children.Clear();
                         _panHint.Margin = new Thickness(0d, 0d, 0d, 15d);
                         return;
@@ -294,25 +292,12 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
 
     private void LoadContent(HomepageContent content)
     {
-        if (content.Kind != HomepageSourceKind.CustomXaml)
-            _lastWpfToastSource = null;
-
         switch (content.Kind)
         {
             case HomepageSourceKind.Blank:
                 LogWrapper.Info("Launch", "[Page] 实例化：清空主页 UI，来源为空");
                 _panCustom.Children.Clear();
                 _panHint.Margin = new Thickness(0d, 0d, 0d, 15d);
-                break;
-
-            case HomepageSourceKind.Removed:
-                DialogService.Instance.ShowNotification(
-                    new TextDialogRequest
-                    {
-                        Title = Lang.Text("Common.Dialog.Title"),
-                        Content = Lang.Text("Launch.Homepage.Preset.EchoCave.Removed"),
-                        Buttons = DialogButtons.Ok
-                    });
                 break;
 
             case HomepageSourceKind.Trivia:
@@ -330,16 +315,16 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
                 _newsView.Reload();
                 break;
 
-            case HomepageSourceKind.CustomXaml:
+            case HomepageSourceKind.CustomAxaml:
             default:
-                LoadCustomXaml(content);
+                LoadCustomAxaml(content);
                 break;
         }
     }
 
-    private void LoadCustomXaml(HomepageContent content)
+    private void LoadCustomAxaml(HomepageContent content)
     {
-        if (string.IsNullOrWhiteSpace(content.Xaml))
+        if (string.IsNullOrWhiteSpace(content.Axaml))
         {
             if (content.ErrorMessage is { Length: > 0 } error)
                 ShowHomepageError(error);
@@ -352,101 +337,25 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
             return;
         }
 
-        var xaml = PageHelpDetailViewModel.ReplaceArguments(content.Xaml);
-        if (!HomepageXamlFormatDetector.IsXaml(xaml))
+        var axaml = HomepageArguments.ReplaceArguments(content.Axaml);
+        var result = HomepageRenderer.Render(axaml);
+        if (result.Error is { Length: > 0 } || result.Root is null)
         {
+            var renderError = result.Error ?? "未知渲染错误";
             LogWrapper.Error(
-                new InvalidDataException("主页内容不是 XAML/AXAML"),
+                new InvalidOperationException(renderError),
                 "Launch",
-                $"[Page] 主页内容格式无效：{content.SourceText}");
-            ShowHomepageError(Lang.Text("Launch.Homepage.InvalidXaml"));
-            return;
-        }
-
-        var format = HomepageXamlFormatDetector.Detect(xaml);
-        if (format == HomepageXamlFormat.Avalonia)
-        {
-            _lastWpfToastSource = null;
-            var avaloniaResult = HomepageAvaloniaRenderer.Render(xaml);
-            if (avaloniaResult.Error is { Length: > 0 }
-                || avaloniaResult.Root is null)
-            {
-                var avaloniaError = avaloniaResult.Error ?? "未知渲染错误";
-                LogWrapper.Error(
-                    new InvalidOperationException(avaloniaError),
-                    "Launch",
-                    $"[Page] AXAML 主页渲染失败：{content.SourceText}");
-                ShowHomepageError(
-                    Lang.Text(
-                        "Launch.Homepage.LoadFailed.Message",
-                        avaloniaError));
-                return;
-            }
-
-            _panCustom.Children.Clear();
-            _panCustom.Children.Add(avaloniaResult.Root);
-            ApplyHomepageLivePatchesFromFile();
-            return;
-        }
-
-        var rendered = RuntimeXamlRenderer.RenderFragment(xaml, FindResource);
-        if (!rendered.Success)
-        {
-            LogWrapper.Error(
-                new InvalidOperationException(rendered.Error ?? "未知渲染错误"),
-                "Launch",
-                $"[Page] 运行时 XAML 主页渲染失败：{content.SourceText}");
+                $"[Page] AXAML 主页渲染失败：{content.SourceText}");
             ShowHomepageError(
                 Lang.Text(
                     "Launch.Homepage.LoadFailed.Message",
-                    rendered.Error ?? Lang.Text("Launch.Homepage.LoadFailed.Title")));
+                    renderError));
             return;
         }
-
-        if (rendered.Controls.Count == 0)
-        {
-            ShowHomepageError(
-                Lang.Text(
-                    "Launch.Homepage.LoadFailed.Message",
-                    "主页中没有可显示的内容"));
-            return;
-        }
-
-        ShowWpfMigrationToast(content);
 
         _panCustom.Children.Clear();
-        foreach (var control in rendered.Controls)
-            _panCustom.Children.Add(control);
-
-        ApplySanitizeHints(rendered);
+        _panCustom.Children.Add(result.Root);
         ApplyHomepageLivePatchesFromFile();
-    }
-
-    private void ShowWpfMigrationToast(HomepageContent content)
-    {
-        var source = content.SourceText ?? "wpf";
-        if (string.Equals(_lastWpfToastSource, source, StringComparison.Ordinal))
-            return;
-
-        _lastWpfToastSource = source;
-        HintService.Show(
-            Hints.Warning(Lang.Text("Launch.Homepage.WpfMigrationToast")));
-    }
-
-    private static void ApplySanitizeHints(RuntimeXamlRenderResult result)
-    {
-        foreach (var warning in result.Warnings.Distinct(StringComparer.Ordinal))
-            LauncherCommon.Log(
-                "[Page] 主页运行时 XAML 警告：" + warning,
-                LauncherLogLevel.Debug);
-
-        foreach (var unsupported in result.UnsupportedEventTypes.Distinct(StringComparer.Ordinal))
-            HintService.Show(
-                Hints.Error(Lang.Text("Event.Sanitize.UnsupportedTypeHint", unsupported)));
-
-        foreach (var unknown in result.UnrecognizedEventTypes.Distinct(StringComparer.Ordinal))
-            HintService.Show(
-                Hints.Error(Lang.Text("Event.Sanitize.UnknownTypeHint", unknown)));
     }
 
     private void ShowHomepageError(string message)
@@ -887,10 +796,9 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
 
     private void ReplacePanelChildren(Panel panel, string childrenXaml)
     {
-        var rendered = RuntimeXamlRenderer.RenderFragment(
-            PageHelpDetailViewModel.ReplaceArguments(childrenXaml),
-            FindResource);
-        if (!rendered.Success)
+        var rendered = HomepageRenderer.RenderFragment(
+            HomepageArguments.ReplaceArguments(childrenXaml));
+        if (rendered.Error is { Length: > 0 } || rendered.Root is not Panel source)
         {
             LauncherCommon.Log(
                 new InvalidOperationException(rendered.Error ?? "未知错误"),
@@ -904,7 +812,9 @@ public partial class PageLaunchRight : MyPageRight, IRefreshable
         for (var i = panel.Children.Count - 1; i >= firstContentIndex; i--)
             panel.Children.RemoveAt(i);
 
-        foreach (var child in rendered.Controls)
+        var children = source.Children.ToArray();
+        source.Children.Clear();
+        foreach (var child in children)
             panel.Children.Add(child);
     }
 
