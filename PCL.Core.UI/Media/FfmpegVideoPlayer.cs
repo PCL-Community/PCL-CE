@@ -9,20 +9,9 @@ namespace PCL.Core.UI.Media;
 /// <summary>通过 FFmpeg 解码视频，并将原始帧写入背景视图。</summary>
 public sealed class FfmpegVideoPlayer : IDisposable
 {
-    private const int TargetFps = 30;
-    private const int FrameTimeoutSeconds = 15;
-
     private readonly string _executablePath;
-
-    private readonly TaskCompletionSource<bool> _firstFrame =
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
-
     private readonly int _frameSize;
     private readonly int _height;
-
-    private readonly TaskCompletionSource<bool> _runCompleted =
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
-
     private readonly IExternalCommandRunner _runner;
     private readonly StringBuilder _stderr = new();
     private readonly Lock _sync = new();
@@ -31,15 +20,18 @@ public sealed class FfmpegVideoPlayer : IDisposable
     private CancellationTokenSource? _cts;
     private bool _disposed;
     private int _failureReported;
+    private TaskCompletionSource<bool>? _firstFrame;
     private bool _hasPending;
+    private string _lastError = string.Empty;
     private TaskCompletionSource<bool>? _pauseGate;
     private bool _paused;
-    private byte[] _pendingBuffer;
-    private byte[] _readBuffer;
+    private VideoFrameBuffer? _pendingFrame;
     private int _renderQueued;
+    private Task? _runTask;
     private IExternalCommandSession? _session;
     private bool _started;
-    private volatile bool _stopRequested;
+    private bool _stopRequested;
+    private bool _suspended;
 
     public FfmpegVideoPlayer(
         IExternalCommandRunner runner,
@@ -47,24 +39,56 @@ public sealed class FfmpegVideoPlayer : IDisposable
         string videoPath,
         int width,
         int height,
-        VideoSuitMode suitMode)
+        VideoSuitMode suitMode,
+        FfmpegPlaybackProfile profile,
+        VideoInfo? videoInfo)
     {
         _runner = runner ?? throw new ArgumentNullException(nameof(runner));
         _executablePath = executablePath;
         _videoPath = videoPath;
         _width = _MakeEven(Math.Max(2, width));
         _height = _MakeEven(Math.Max(2, height));
-        _frameSize = _width * _height * 4;
-        _readBuffer = new byte[_frameSize];
-        _pendingBuffer = new byte[_frameSize];
-        View = new VideoFrameView(_width, _height, suitMode);
+        Profile = profile ?? throw new ArgumentNullException(nameof(profile));
+        _frameSize = profile.Options.PixelFormat == FfmpegPixelFormat.Yuv420p
+            ? _width * _height * 3 / 2
+            : _width * _height * 4;
+        View = profile.Options.PixelFormat == FfmpegPixelFormat.Yuv420p
+            ? new YuvVideoFrameView(
+                _width,
+                _height,
+                suitMode,
+                videoInfo?.ColorRange,
+                videoInfo?.ColorSpace)
+            : new VideoFrameView(_width, _height, suitMode);
     }
 
     /// <summary>用于显示视频帧的视图。</summary>
-    public VideoFrameView View { get; }
+    public VideoSurface View { get; }
+
+    /// <summary>当前播放使用的 profile。</summary>
+    public FfmpegPlaybackProfile Profile { get; }
+
+    /// <summary>当前 profile 的首帧等待时间。</summary>
+    public TimeSpan FirstFrameTimeout => Profile.FirstFrameTimeout;
 
     /// <summary>最近一次播放错误；没有错误时为空字符串。</summary>
-    public string LastError { get; private set; } = string.Empty;
+    public string LastError
+    {
+        get
+        {
+            lock (_sync)
+            {
+                return _lastError;
+            }
+        }
+        private set
+        {
+            lock (_sync)
+            {
+                _lastError = value;
+            }
+        }
+    }
 
     /// <summary>当前是否已暂停。</summary>
     public bool IsPaused
@@ -78,53 +102,72 @@ public sealed class FfmpegVideoPlayer : IDisposable
         }
     }
 
+    /// <summary>解码进程是否已挂起；挂起时最后一帧仍保留。</summary>
+    public bool IsSuspended
+    {
+        get
+        {
+            lock (_sync)
+            {
+                return _suspended;
+            }
+        }
+    }
+
+    private bool IsStarted
+    {
+        get
+        {
+            lock (_sync)
+            {
+                return _started;
+            }
+        }
+    }
+
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
-        Stop();
-        View.Dispose();
+        StopSessionAsync(false).GetAwaiter().GetResult();
+        ClearPendingFrame();
+
+        if (Dispatcher.UIThread.CheckAccess())
+            View.Dispose();
+        else
+            Dispatcher.UIThread.Post(() => View.Dispose());
+        GC.SuppressFinalize(this);
+    }
+
+    public async Task DisposeAsync()
+    {
+        if (_disposed) return;
+        _disposed = true;
+        await StopSessionAsync(false).ConfigureAwait(false);
+        ClearPendingFrame();
+
+        if (Dispatcher.UIThread.CheckAccess())
+            View.Dispose();
+        else
+            await Dispatcher.UIThread.InvokeAsync(() => View.Dispose());
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>启动解码并等待首帧。</summary>
-    /// <returns>在超时前成功取得首帧时返回 <see langword="true" />。</returns>
-    public async Task<bool> StartAsync(CancellationToken cancellationToken = default)
+    public Task<bool> StartAsync(CancellationToken cancellationToken = default)
     {
-        CancellationTokenSource cts;
-        lock (_sync)
-        {
-            if (_disposed || _stopRequested) return false;
-            if (_started)
-                return _firstFrame.Task is { IsCompletedSuccessfully: true, Result: true };
+        return StartAsync(Profile.FirstFrameTimeout, cancellationToken);
+    }
 
-            _started = true;
-            cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            _cts = cts;
-        }
-
-        _ = Task.Run(() => _RunAsync(cts), CancellationToken.None);
-
-        try
-        {
-            var timeout = Task.Delay(
-                TimeSpan.FromSeconds(FrameTimeoutSeconds),
-                cts.Token);
-            var completed = await Task.WhenAny(_firstFrame.Task, timeout);
-            if (completed == _firstFrame.Task && await _firstFrame.Task)
-                return true;
-
-            if (!cancellationToken.IsCancellationRequested
-                && !_stopRequested
-                && string.IsNullOrWhiteSpace(LastError))
-                _SetError("等待视频首帧超时");
-            Stop();
-            return false;
-        }
-        catch (OperationCanceledException)
-        {
-            Stop();
-            return false;
-        }
+    /// <summary>启动解码并等待首帧。</summary>
+    public async Task<bool> StartAsync(
+        TimeSpan firstFrameTimeout,
+        CancellationToken cancellationToken = default)
+    {
+        if (_disposed) return false;
+        if (IsSuspended) return await ResumeAsync(firstFrameTimeout, cancellationToken);
+        if (IsStarted) return true;
+        return await StartSessionAsync(firstFrameTimeout, cancellationToken);
     }
 
     /// <summary>暂停读取新帧。</summary>
@@ -132,7 +175,7 @@ public sealed class FfmpegVideoPlayer : IDisposable
     {
         lock (_sync)
         {
-            if (_disposed || _stopRequested || _paused) return;
+            if (_disposed || _suspended || _stopRequested || _paused) return;
             _paused = true;
             _pauseGate = new TaskCompletionSource<bool>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
@@ -145,7 +188,7 @@ public sealed class FfmpegVideoPlayer : IDisposable
         TaskCompletionSource<bool>? gate;
         lock (_sync)
         {
-            if (_disposed || _stopRequested || !_paused) return;
+            if (_disposed || _suspended || _stopRequested || !_paused) return;
             _paused = false;
             gate = _pauseGate;
             _pauseGate = null;
@@ -154,27 +197,130 @@ public sealed class FfmpegVideoPlayer : IDisposable
         gate?.TrySetResult(true);
     }
 
-    /// <summary>立即终止解码进程。</summary>
-    public void Stop()
+    /// <summary>停止解码进程，但保留最后一帧和视图。</summary>
+    public async Task SuspendAsync()
     {
-        var (cts, session, gate) = _Detach();
-        try
+        if (_disposed) return;
+        if (IsSuspended) return;
+
+        await StopSessionAsync(true).ConfigureAwait(false);
+        LogWrapper.Info("Media", "视频背景已挂起并释放解码进程");
+    }
+
+    /// <summary>从挂起状态重新启动解码。</summary>
+    public async Task<bool> ResumeAsync(
+        TimeSpan firstFrameTimeout,
+        CancellationToken cancellationToken = default)
+    {
+        if (_disposed) return false;
+        if (!IsSuspended) return IsStarted;
+
+        lock (_sync)
         {
-            cts?.Cancel();
-        }
-        catch
-        {
+            _suspended = false;
+            _paused = false;
         }
 
-        gate?.TrySetResult(true);
-        session?.Kill();
-        session?.Dispose();
+        return await StartSessionAsync(firstFrameTimeout, cancellationToken);
+    }
+
+    /// <summary>立即终止解码进程，并等待其退出。</summary>
+    public void Stop()
+    {
+        StopSessionAsync(false).GetAwaiter().GetResult();
     }
 
     /// <summary>终止解码进程并等待其退出。</summary>
     public async Task StopAsync()
     {
-        var (cts, session, gate) = _Detach();
+        await StopSessionAsync(false).ConfigureAwait(false);
+    }
+
+    private async Task<bool> StartSessionAsync(
+        TimeSpan firstFrameTimeout,
+        CancellationToken cancellationToken)
+    {
+        CancellationTokenSource cts;
+        TaskCompletionSource<bool> firstFrame;
+        Task runTask;
+        lock (_sync)
+        {
+            if (_disposed) return false;
+            if (_started) return true;
+
+            _stopRequested = false;
+            _started = true;
+            _paused = false;
+            _pauseGate = null;
+            _lastError = string.Empty;
+            _failureReported = 0;
+            _firstFrame = new TaskCompletionSource<bool>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
+            firstFrame = _firstFrame;
+            cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            _cts = cts;
+            runTask = Task.Run(() => _RunAsync(cts), CancellationToken.None);
+            _runTask = runTask;
+        }
+
+        try
+        {
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(
+                cancellationToken);
+            timeoutCts.CancelAfter(firstFrameTimeout);
+            var timeoutTask = Task.Delay(Timeout.Infinite, timeoutCts.Token);
+            var completed = await Task
+                .WhenAny(firstFrame.Task, timeoutTask)
+                .ConfigureAwait(false);
+            if (completed == firstFrame.Task && await firstFrame.Task.ConfigureAwait(false))
+            {
+                timeoutCts.Cancel();
+                return true;
+            }
+
+            if (!cancellationToken.IsCancellationRequested
+                && !_stopRequested
+                && string.IsNullOrWhiteSpace(LastError))
+                _SetError("等待视频首帧超时");
+            await StopSessionAsync(false).ConfigureAwait(false);
+            return false;
+        }
+        catch (OperationCanceledException)
+        {
+            await StopSessionAsync(false).ConfigureAwait(false);
+            return false;
+        }
+        finally
+        {
+            _ = runTask;
+        }
+    }
+
+    private (CancellationTokenSource? Cts, IExternalCommandSession? Session,
+        TaskCompletionSource<bool>? Gate, Task? RunTask)
+        DetachSession(bool keepSuspended)
+    {
+        _stopRequested = true;
+        lock (_sync)
+        {
+            var cts = _cts;
+            _cts = null;
+            var session = _session;
+            _session = null;
+            var gate = _pauseGate;
+            _pauseGate = null;
+            var runTask = _runTask;
+            _runTask = null;
+            _started = false;
+            _paused = false;
+            _suspended = keepSuspended;
+            return (cts, session, gate, runTask);
+        }
+    }
+
+    private async Task<bool> StopSessionAsync(bool keepSuspended)
+    {
+        var (cts, session, gate, runTask) = DetachSession(keepSuspended);
         try
         {
             cts?.Cancel();
@@ -201,35 +347,22 @@ public sealed class FfmpegVideoPlayer : IDisposable
             session.Dispose();
         }
 
-        if (!_started) return;
-        try
+        if (runTask is not null)
         {
-            await _runCompleted
-                .Task
-                .WaitAsync(TimeSpan.FromSeconds(1))
-                .ConfigureAwait(false);
-        }
-        catch
-        {
-        }
-    }
+            try
+            {
+                await runTask
+                    .WaitAsync(TimeSpan.FromSeconds(1))
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+            }
 
-    private (CancellationTokenSource? Cts, IExternalCommandSession? Session,
-        TaskCompletionSource<bool>? Gate)
-        _Detach()
-    {
-        _stopRequested = true;
-        lock (_sync)
-        {
-            var cts = _cts;
-            _cts = null;
-            var session = _session;
-            _session = null;
-            var gate = _pauseGate;
-            _pauseGate = null;
-            _paused = false;
-            return (cts, session, gate);
+            return runTask.IsCompleted;
         }
+
+        return true;
     }
 
     private async Task _RunAsync(CancellationTokenSource cts)
@@ -248,7 +381,7 @@ public sealed class FfmpegVideoPlayer : IDisposable
                             _videoPath,
                             _width,
                             _height,
-                            TargetFps));
+                            Profile.Options));
 
                     lock (_sync)
                     {
@@ -279,9 +412,7 @@ public sealed class FfmpegVideoPlayer : IDisposable
                     try
                     {
                         await stderrTask
-                            .WaitAsync(
-                                TimeSpan.FromSeconds(1),
-                                cancellationToken)
+                            .WaitAsync(TimeSpan.FromSeconds(1), cancellationToken)
                             .ConfigureAwait(false);
                     }
                     catch
@@ -334,12 +465,13 @@ public sealed class FfmpegVideoPlayer : IDisposable
         }
         finally
         {
-            lock (_sync)
+            try
             {
-                if (ReferenceEquals(_cts, cts)) _cts = null;
+                cts.Dispose();
             }
-
-            _runCompleted.TrySetResult(true);
+            catch
+            {
+            }
         }
     }
 
@@ -360,45 +492,51 @@ public sealed class FfmpegVideoPlayer : IDisposable
                 break;
             }
 
-            var total = 0;
+            var frame = VideoSurface.RentFrameBuffer(_frameSize);
+            var transferred = false;
             try
             {
+                var total = 0;
                 while (total < _frameSize)
                 {
                     var read = await stream
                         .ReadAsync(
-                            _readBuffer.AsMemory(total, _frameSize - total),
+                            frame.Data.AsMemory(total, _frameSize - total),
                             cancellationToken)
                         .ConfigureAwait(false);
                     if (read == 0) break;
                     total += read;
                 }
+
+                if (total < _frameSize) break;
+
+                lock (_sync)
+                {
+                    if (_disposed || _stopRequested) break;
+
+                    var previous = _pendingFrame;
+                    _pendingFrame = frame;
+                    _hasPending = true;
+                    transferred = true;
+                    previous?.Dispose();
+                }
+
+                frames++;
+                _firstFrame?.TrySetResult(true);
+                _QueueRender();
             }
-            catch (OperationCanceledException)
+            catch (Exception ex) when (
+                ex is OperationCanceledException
+                    or IOException
+                    or ObjectDisposedException)
             {
                 break;
             }
-            catch (IOException)
+            finally
             {
-                break;
+                if (!transferred)
+                    frame.Dispose();
             }
-            catch (ObjectDisposedException)
-            {
-                break;
-            }
-
-            if (total == 0) break;
-            if (total < _frameSize) break;
-
-            lock (_sync)
-            {
-                (_pendingBuffer, _readBuffer) = (_readBuffer, _pendingBuffer);
-                _hasPending = true;
-            }
-
-            frames++;
-            _firstFrame.TrySetResult(true);
-            _QueueRender();
         }
 
         return frames;
@@ -409,7 +547,12 @@ public sealed class FfmpegVideoPlayer : IDisposable
         Task? waitTask;
         lock (_sync)
         {
-            if (!_paused) return;
+            if (!_paused)
+                return;
+
+            if (_firstFrame is { Task.IsCompleted: false })
+                return;
+
             waitTask = _pauseGate?.Task;
         }
 
@@ -454,18 +597,24 @@ public sealed class FfmpegVideoPlayer : IDisposable
 
     private void _RenderLatest()
     {
+        VideoFrameBuffer? frame = null;
         try
         {
             if (_disposed) return;
             lock (_sync)
             {
-                if (_disposed || !_hasPending) return;
+                if (_disposed || _stopRequested || !_hasPending) return;
                 _hasPending = false;
-                View.Present(_pendingBuffer);
+                frame = _pendingFrame;
+                _pendingFrame = null;
             }
+
+            if (frame is not null)
+                View.Present(frame);
         }
         catch (Exception ex)
         {
+            frame?.Dispose();
             _SetError(ex.Message);
         }
         finally
@@ -481,14 +630,27 @@ public sealed class FfmpegVideoPlayer : IDisposable
         }
     }
 
+    private void ClearPendingFrame()
+    {
+        VideoFrameBuffer? frame;
+        lock (_sync)
+        {
+            frame = _pendingFrame;
+            _pendingFrame = null;
+            _hasPending = false;
+        }
+
+        frame?.Dispose();
+    }
+
     private void _SetError(string? message)
     {
         if (string.IsNullOrWhiteSpace(message)) return;
         LastError = message.Trim();
-        _firstFrame.TrySetResult(false);
+        _firstFrame?.TrySetResult(false);
         if (Interlocked.Exchange(ref _failureReported, 1) != 0) return;
 
-        LogWrapper.Info("Media", $"视频背景播放失败：{LastError}");
+        LogWrapper.Info("Media", $"视频背景播放失败：{message.Trim()}");
     }
 
     private string _ReadStderr()

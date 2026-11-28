@@ -11,7 +11,15 @@ namespace PCL.Core.Media;
 /// <summary>视频的显示尺寸。</summary>
 public readonly record struct VideoSize(int Width, int Height);
 
-/// <summary>通过 FFmpeg 探测视频流的原始显示尺寸。</summary>
+/// <summary>视频流的尺寸、帧率和色彩信息。</summary>
+public sealed record VideoInfo(
+    VideoSize Size,
+    double? FrameRate,
+    string? PixelFormat,
+    string? ColorRange,
+    string? ColorSpace);
+
+/// <summary>通过 FFmpeg 探测视频流的显示信息。</summary>
 public sealed partial class FfmpegVideoProbe(IExternalCommandRunner runner)
 {
     private static readonly TimeSpan _ProbeTimeout = TimeSpan.FromSeconds(5);
@@ -21,6 +29,17 @@ public sealed partial class FfmpegVideoProbe(IExternalCommandRunner runner)
 
     /// <summary>探测视频的第一个视频流尺寸。</summary>
     public async Task<VideoSize?> ProbeAsync(
+        string executablePath,
+        string videoPath,
+        CancellationToken cancellationToken = default)
+    {
+        var info = await ProbeInfoAsync(executablePath, videoPath, cancellationToken)
+            .ConfigureAwait(false);
+        return info?.Size;
+    }
+
+    /// <summary>探测视频的第一个视频流信息。</summary>
+    public async Task<VideoInfo?> ProbeInfoAsync(
         string executablePath,
         string videoPath,
         CancellationToken cancellationToken = default)
@@ -40,7 +59,7 @@ public sealed partial class FfmpegVideoProbe(IExternalCommandRunner runner)
                     cancellationToken)
                 .ConfigureAwait(false);
 
-            return Parse(result.StandardError) ?? Parse(result.StandardOutput);
+            return ParseInfo(result.StandardError) ?? ParseInfo(result.StandardOutput);
         }
         catch (OperationCanceledException)
         {
@@ -48,13 +67,19 @@ public sealed partial class FfmpegVideoProbe(IExternalCommandRunner runner)
         }
         catch (Exception ex)
         {
-            LogWrapper.Debug("Media", $"探测视频尺寸失败：{ex.Message}");
+            LogWrapper.Debug("Media", $"探测视频信息失败：{ex.Message}");
             return null;
         }
     }
 
     /// <summary>从 FFmpeg 的流信息输出中解析视频尺寸。</summary>
     public static VideoSize? Parse(string output)
+    {
+        return ParseInfo(output)?.Size;
+    }
+
+    /// <summary>从 FFmpeg 的流信息输出中解析视频信息。</summary>
+    public static VideoInfo? ParseInfo(string output)
     {
         var match = _VideoSizePattern().Match(output);
         if (!match.Success) return null;
@@ -82,7 +107,65 @@ public sealed partial class FfmpegVideoProbe(IExternalCommandRunner runner)
         if (_TryParseRotation(output, out var rotation) && _IsQuarterTurn(rotation))
             (displayWidth, displayHeight) = (displayHeight, displayWidth);
 
-        return new VideoSize(displayWidth, displayHeight);
+        var frameRate = _ParseFrameRate(output);
+        var color = _ParseColorInfo(output);
+        return new VideoInfo(
+            new VideoSize(displayWidth, displayHeight),
+            frameRate,
+            color.PixelFormat,
+            color.ColorRange,
+            color.ColorSpace);
+    }
+
+    private static double? _ParseFrameRate(string output)
+    {
+        var match = _FrameRatePattern().Match(output);
+        return !match.Success
+            || !double.TryParse(
+                match.Groups[1].Value,
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out var frameRate)
+            || frameRate <= 0d
+                ? null
+                : frameRate;
+    }
+
+    private static (string? PixelFormat, string? ColorRange, string? ColorSpace)
+        _ParseColorInfo(string output)
+    {
+        var match = _ColorInfoPattern().Match(output);
+        if (!match.Success)
+            return (null, null, null);
+
+        var pixelFormat = match.Groups[1].Value.ToLowerInvariant();
+        var metadata = match.Groups[2].Value.ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(metadata))
+            return (pixelFormat, null, null);
+
+        string? colorRange = null;
+        string? colorSpace = null;
+        foreach (
+            var part in metadata.Split(
+                [',', ' ', '/'],
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            switch (part)
+            {
+                case "tv" or "pc":
+                    colorRange = part;
+                    break;
+                case "bt2020nc":
+                    colorSpace = "bt2020";
+                    break;
+                case "bt709" or "bt601" or "bt2020" or "bt2020c" or "smpte170m" or "bt470bg"
+                    or "smpte240m" or "bt470m" or "film" or "fcc" or "ycgco"
+                    or "smpte2085" or "chroma-derived-nc" or "chroma-derived-c"
+                    or "ictcp" or "jedec-p22" or "smpte428" or "smpte431" or "smpte432":
+                    colorSpace = part;
+                    break;
+            }
+
+        return (pixelFormat, colorRange, colorSpace);
     }
 
     private static bool _TryParseRatio(
@@ -136,6 +219,16 @@ public sealed partial class FfmpegVideoProbe(IExternalCommandRunner runner)
         @"Video:[^\r\n]*?(\d{2,5})x(\d{2,5})",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex _VideoSizePattern();
+
+    [GeneratedRegex(
+        @"(\d+(?:\.\d+)?)\s+fps\b",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _FrameRatePattern();
+
+    [GeneratedRegex(
+        @"Video:[^\r\n]*?,\s*([A-Za-z0-9_]+)(?:\(([^)]*)\))?,\s*\d{2,5}x\d{2,5}",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex _ColorInfoPattern();
 
     [GeneratedRegex(
         @"\bSAR\s+(\d+):(\d+)\b",

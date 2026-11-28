@@ -415,7 +415,15 @@
                                    DataContext="{StaticResource BackgroundFfmpegSettings}"
                                    x:DataType="bg:BackgroundFfmpegSettings"
                                    Checked="{Binding AutoPauseVideo, Mode=TwoWay}"
-                                   IsVisible="{Binding IsPauseVisible}" />
+                                   IsVisible="{Binding HasBackgroundContent}" />
+                    <ui:MyCheckBox x:Name="CheckHardwareAcceleration"
+                                   Height="22"
+                                   Margin="-1,0,0,8"
+                                   Text="{loc:Loc Setup.Ui.Background.HardwareAcceleration}"
+                                   ToolTip.Tip="{loc:Loc Setup.Ui.Background.HardwareAcceleration.ToolTip}"
+                                   DataContext="{StaticResource BackgroundFfmpegSettings}"
+                                   x:DataType="bg:BackgroundFfmpegSettings"
+                                   Checked="{Binding HardwareAcceleration, Mode=TwoWay}" />
                     <ui:MyCheckBox x:Name="CheckBackgroundColorful"
                                    Height="22"
                                    Margin="-1,0,0,8"
@@ -438,7 +446,7 @@
                         <ui:MyTextBox x:Name="TextBackgroundFfmpegPath"
                                       Grid.Column="1"
                                       Margin="0,0,8,0"
-                                      HintText="{loc:Loc Setup.Ui.Background.Ffmpeg.Hint}"
+                                      HintText="{Binding FfmpegPathHint}"
                                       Text="{Binding FfmpegPath, Mode=TwoWay}"
                                       ToolTip.Tip="{Binding FfmpegToolTip}" />
                         <ui:MyButton x:Name="BtnBackgroundFfmpegBrowse"
@@ -453,13 +461,6 @@
                                      Text="{loc:Loc Setup.Ui.Background.Ffmpeg.Detect}"
                                      Command="{Binding DetectCommand}" />
                     </Grid>
-                    <ui:MyHint x:Name="HintBackgroundFfmpeg"
-                               Margin="0,0,0,10"
-                               Theme="Blue"
-                               DataContext="{StaticResource BackgroundFfmpegSettings}"
-                               x:DataType="bg:BackgroundFfmpegSettings"
-                               IsVisible="{Binding FfmpegStatusVisible}"
-                               Text="{Binding FfmpegStatusText}" />
                     <Grid Height="35"
                           Margin="0,2,0,0">
                         <Grid.ColumnDefinitions>

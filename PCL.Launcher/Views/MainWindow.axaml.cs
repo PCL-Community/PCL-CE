@@ -331,13 +331,20 @@ public partial class MainWindow : Window
             true);
     }
 
-    private void OnClosed()
+    private async void OnClosed()
     {
         PageRouter.Navigated -= OnNavigated;
         PageRouter.PageHostSwapped -= OnPageHostSwapped;
         LocalizationService.LanguageChanged -= OnLanguageChangedForLeftWidth;
         BackgroundHost.Detach(_background);
-        _background.Remove();
+        try
+        {
+            await _background.RemoveAsync();
+        }
+        catch (Exception ex)
+        {
+            LogWrapper.Debug(ex, "UI", "释放主窗口背景失败");
+        }
     }
 
     private void ApplyWindowIcon()

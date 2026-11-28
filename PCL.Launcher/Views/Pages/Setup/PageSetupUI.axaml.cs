@@ -61,9 +61,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 ? ffmpegSettings
                 : throw new InvalidOperationException(
                     "BackgroundFfmpegSettings resource is missing.");
-        _FfmpegSettings.StatusThemeChanged += OnFfmpegStatusThemeChanged;
-        OnFfmpegStatusThemeChanged(_FfmpegSettings.FfmpegStatusTheme);
-
         _logoTypeRadios = [RadioLogoType0, RadioLogoType1, RadioLogoType2, RadioLogoType3];
         _homepageRadios = [RadioCustomType0, RadioCustomType3, RadioCustomType1, RadioCustomType2];
         _macTitleBarStyleRadios = [RadioMacTitleBarStyle0, RadioMacTitleBarStyle1];
@@ -604,16 +601,6 @@ public partial class PageSetupUI : MyPageRight, ISetupResetPage
                 LauncherLogLevel.Feedback,
                 userSummary: Lang.Text("Setup.Ui.Background.Refresh.Failed"));
         }
-    }
-
-    private void OnFfmpegStatusThemeChanged(BackgroundFfmpegStatusTheme theme)
-    {
-        HintBackgroundFfmpeg.Theme = theme switch
-        {
-            BackgroundFfmpegStatusTheme.Blue => MyHint.Themes.Blue,
-            BackgroundFfmpegStatusTheme.Red => MyHint.Themes.Red,
-            _ => MyHint.Themes.Yellow
-        };
     }
 
     private static void OpenFolder(string folder)
